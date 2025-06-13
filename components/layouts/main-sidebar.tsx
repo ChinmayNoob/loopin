@@ -38,9 +38,9 @@ const LeftSideBar = () => {
                 )
             );
 
-            // Redirect to home if on the profile page and userId is null
-            if (pathname.includes("/profile")) {
-                router.push("/"); // Redirect to home
+            // Only redirect if we're on the edit profile page and not logged in
+            if (pathname === "/profile/edit") {
+                router.push("/");
             }
         }
     }, [userId, pathname, router]);
