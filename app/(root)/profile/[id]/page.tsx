@@ -1,25 +1,33 @@
+'use client'
+
 import { Button } from "@/components/ui/button";
 import { getJoinedDate } from "@/lib/utils";
 import { URLProps } from "@/types";
-import { SignedIn, UserButton } from "@clerk/nextjs";
+import { SignedIn, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
 import ProfileLink from "@/components/profile/profile-link";
-import { getUserInfo } from "@/lib/actions/users";
+import { useUserInfo } from "@/lib/axios/users";
+import { use } from "react";
 
-export const metadata: Metadata = {
-    title: "Profile",
-    description: "Profile page",
-};
+interface PageParams {
+    id: string;
+}
 
-const ProfileDetails = async ({ params, searchParams }: URLProps) => {
-    const { userId: clerkId } = await auth();
-    const { user, totalQuestions, totalAnswers, reputation, badgeCounts } =
-        await getUserInfo({
-            userId: params.id,
-        });
+const ProfileDetails = ({ params, searchParams }: { params: Promise<PageParams>, searchParams: URLProps['searchParams'] }) => {
+    const { userId: clerkId } = useAuth();
+    const unwrappedParams = use(params);
+    const { data: userInfo, isLoading } = useUserInfo(unwrappedParams.id);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    const { user, totalQuestions, totalAnswers, reputation } = userInfo || {};
+
+    if (!user) {
+        return <div>User not found</div>;
+    }
 
     return (
         <div className="w-full">
@@ -116,4 +124,5 @@ const ProfileDetails = async ({ params, searchParams }: URLProps) => {
         </div>
     );
 };
+
 export default ProfileDetails;

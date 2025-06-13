@@ -3,9 +3,7 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { updateUser } from "@/lib/actions/users";
 import { toast } from "sonner";
 import {
     Form,
@@ -20,6 +18,7 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { ProfileSchema } from "@/lib/schema-types";
 import { Check, Loader } from "lucide-react";
+import { useUpdateUser } from "@/lib/axios/users";
 
 interface ProfileProps {
     clerkId: string;
@@ -28,9 +27,9 @@ interface ProfileProps {
 
 const Profile = ({ clerkId, user }: ProfileProps) => {
     const userInfo = JSON.parse(user);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
+    const { mutate: updateUserMutation, isPending } = useUpdateUser();
 
     // 1. Defining form.
     const form = useForm<z.infer<typeof ProfileSchema>>({
@@ -46,9 +45,8 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
 
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof ProfileSchema>) {
-        setIsSubmitting(true);
-        try {
-            await updateUser({
+        updateUserMutation(
+            {
                 clerkId,
                 updateData: {
                     name: values.name,
@@ -58,21 +56,22 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
                     bio: values.bio,
                 },
                 path: pathname,
-            });
-
-            // back to profile pages
-            router.back();
-
-            toast.success("Profile updated", {
-                icon: <Check className="text-green-500" />,
-            });
-        } catch (error) {
-            console.log(error);
-            toast.error("Failed to update profile");
-        } finally {
-            setIsSubmitting(false);
-        }
+            },
+            {
+                onSuccess: () => {
+                    router.back();
+                    toast.success("Profile updated", {
+                        icon: <Check className="text-green-500" />,
+                    });
+                },
+                onError: (error) => {
+                    console.error(error);
+                    toast.error("Failed to update profile");
+                },
+            }
+        );
     }
+
     return (
         <Form {...form}>
             <form
@@ -169,7 +168,7 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
                             <FormControl>
                                 <Textarea
                                     placeholder="What's special about you?"
-                                        className="font-normal min-h-[56px]"
+                                    className="font-normal min-h-[56px]"
                                     {...field}
                                 />
                             </FormControl>
@@ -180,11 +179,11 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
                 />
                 <div className="mt-7 flex justify-end">
                     <Button
-                        disabled={isSubmitting}
+                        disabled={isPending}
                         type="submit"
-                        className=" w-fit"
+                        className="w-fit"
                     >
-                        {isSubmitting ? (
+                        {isPending ? (
                             <>
                                 <Loader className="my-2 size-4 animate-spin" />
                                 Saving...

@@ -1,38 +1,37 @@
-import { ensureUserExists, getUserByClerkId } from "@/lib/actions/users";
+'use client'
+
 import { ParamsProps } from "@/types";
-import { auth } from "@clerk/nextjs/server";
-import { Metadata } from "next";
+import { useAuth } from "@clerk/nextjs";
 import Profile from "@/components/profile/profile";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useUserByClerkId } from "@/lib/axios/users";
 
-export const metadata: Metadata = {
-    title: "Edit profile",
-    description: "Edit profile page",
-};
+const ProfileEdit = ({ params }: ParamsProps) => {
+    const { userId } = useAuth();
+    const { data: userResult, isLoading } = useUserByClerkId(userId || '');
 
-const ProfileEdit = async ({ params }: ParamsProps) => {
-    const { userId } = await auth();
-    if (!userId) return null;
+    if (!userId) return <div>No user found</div>;
+    if (isLoading) return <div>Loading...</div>;
 
-    // Ensure user exists in database first
-    await ensureUserExists(userId);
+    // // Only redirect if we have data and it's not successful
+    // if (userResult && !userResult.success) {
+    //     redirect('/');
+    // }
 
-    const userResult = await getUserByClerkId(userId);
-
-    // If user is still not found, something is seriously wrong
-    if (!userResult.success || !userResult.user) {
-        redirect('/');
+    // If we're still loading or don't have data yet, show loading
+    if (!userResult?.user) {
+        return <div>Loading...</div>;
     }
 
     return (
         <div className="w-full">
             <div className="text-[#000000] dark:text-[#FFFFFF] mt-1 flex w-full flex-col px-6 pb-2 pt-4 sm:px-12">
                 <div className="flex items-start justify-start mb-4">
-                    <Link href={`/profile/${userResult.user.id}`}>
+                    <Link href={`/profile/${userResult.user.clerkId}`}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -49,8 +48,6 @@ const ProfileEdit = async ({ params }: ParamsProps) => {
                 </div>
             </div>
 
-
-
             <div className="px-6 sm:px-12 pt-8">
                 <div className="border border-[#cbcbcb] dark:border-[#212734] bg-[#fdfdfd] dark:bg-[#09090A] rounded-lg p-6">
                     <Profile clerkId={userId} user={JSON.stringify(userResult.user)} />
@@ -59,4 +56,5 @@ const ProfileEdit = async ({ params }: ParamsProps) => {
         </div>
     );
 };
+
 export default ProfileEdit;

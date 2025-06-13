@@ -1,15 +1,17 @@
-import { SignedIn, UserButton } from "@clerk/nextjs";
+'use client';
+
+import { SignedIn, UserButton, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/actions/users";
 import Theme from "./theme-toggle";
 import MobileNav from "./mobile-navbar";
+import { useCurrentUser } from "@/lib/axios/users";
 
-const Navbar = async () => {
-    const { userId } = await auth();
+const Navbar = () => {
+    const { data: userResult } = useCurrentUser();
+
+    console.log(userResult);
 
     // Dummy data for tags
     const allTags = {
@@ -22,11 +24,10 @@ const Navbar = async () => {
         ]
     };
 
-    const result = await getUserByClerkId(userId || "");
     const user = {
-        name: result?.success && result.user ? result.user.name : "",
-        username: result?.success && result.user ? result.user.username : "",
-        picture: result?.success && result.user ? result.user.picture : "",
+        name: userResult?.success && userResult.user ? userResult.user.name : "",
+        username: userResult?.success && userResult.user ? userResult.user.username : "",
+        picture: userResult?.success && userResult.user ? userResult.user.picture : "",
     };
 
     return (
