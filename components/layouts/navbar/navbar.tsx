@@ -11,7 +11,6 @@ import { useCurrentUser } from "@/lib/axios/users";
 const Navbar = () => {
     const { data: userResult } = useCurrentUser();
 
-    console.log(userResult);
 
     // Dummy data for tags
     const allTags = {

@@ -45,16 +45,29 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
 
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof ProfileSchema>) {
+        // Only include fields that have values (not empty strings)
+        const updateData: any = {};
+
+        if (values.name && values.name.trim() !== "") {
+            updateData.name = values.name;
+        }
+        if (values.username && values.username.trim() !== "") {
+            updateData.username = values.username;
+        }
+        if (values.bio && values.bio.trim() !== "") {
+            updateData.bio = values.bio;
+        }
+        if (values.location && values.location.trim() !== "") {
+            updateData.location = values.location;
+        }
+        if (values.leetcodeProfile && values.leetcodeProfile.trim() !== "") {
+            updateData.leetcodeProfile = values.leetcodeProfile;
+        }
+
         updateUserMutation(
             {
                 clerkId,
-                updateData: {
-                    name: values.name,
-                    username: values.username,
-                    leetcodeProfile: values.leetcodeProfile || undefined,
-                    location: values.location,
-                    bio: values.bio,
-                },
+                updateData,
                 path: pathname,
             },
             {
@@ -84,7 +97,7 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
                     render={({ field }) => (
                         <FormItem className="space-y-3.5">
                             <FormLabel className="font-semibold">
-                                Name <span className="text-red-600">*</span>
+                                Name
                             </FormLabel>
                             <FormControl>
                                 <Input
@@ -103,7 +116,7 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
                     render={({ field }) => (
                         <FormItem className="space-y-3.5">
                             <FormLabel className="font-semibold">
-                                username <span className="text-red-600">*</span>
+                                username
                             </FormLabel>
                             <FormControl>
                                 <Input
