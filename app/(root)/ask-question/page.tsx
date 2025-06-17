@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     description: "Ask a question page",
 };
 
+
 const AskQuestionPage = async () => {
     const { userId } = await auth();
 
