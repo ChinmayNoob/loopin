@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import { Metadata } from "next";
 import Link from "next/link";
-import QuestionsList from "@/components/shared/QuestionsList";
+import QuestionsList from "@/components/questions/question-list";
 
 export const metadata: Metadata = {
     title: "Home",
