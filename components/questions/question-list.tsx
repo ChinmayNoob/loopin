@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import QuestionCard from "@/components/cards/QuestionCard";
+import QuestionCard from "@/components/cards/question-card";
 import { useQuestions } from "@/lib/axios/questions";
 import { GetQuestionsParams } from "@/lib/actions/shared.types";
 
