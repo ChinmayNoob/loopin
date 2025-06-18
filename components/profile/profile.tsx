@@ -46,7 +46,13 @@ const Profile = ({ clerkId, user }: ProfileProps) => {
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof ProfileSchema>) {
         // Only include fields that have values (not empty strings)
-        const updateData: any = {};
+        const updateData: Partial<{
+            name: string;
+            username: string;
+            leetcodeProfile?: string;
+            location: string;
+            bio: string;
+        }> = {};
 
         if (values.name && values.name.trim() !== "") {
             updateData.name = values.name;

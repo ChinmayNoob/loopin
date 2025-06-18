@@ -1,28 +1,20 @@
 'use client'
 
-import { ParamsProps } from "@/types";
 import { useAuth } from "@clerk/nextjs";
 import Profile from "@/components/profile/profile";
-import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useUserByClerkId } from "@/lib/axios/users";
 
-const ProfileEdit = ({ params }: ParamsProps) => {
+const ProfileEdit = () => {
     const { userId } = useAuth();
     const { data: userResult, isLoading } = useUserByClerkId(userId || '');
 
     if (!userId) return <div>No user found</div>;
     if (isLoading) return <div>Loading...</div>;
 
-    // // Only redirect if we have data and it's not successful
-    // if (userResult && !userResult.success) {
-    //     redirect('/');
-    // }
 
-    // If we're still loading or don't have data yet, show loading
     if (!userResult?.user) {
         return <div>Loading...</div>;
     }

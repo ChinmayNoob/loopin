@@ -2,11 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { getJoinedDate } from "@/lib/utils";
-import { URLProps } from "@/types";
 import { SignedIn, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import ProfileLink from "@/components/profile/profile-link";
+import ProfileTabs from "@/components/profile/profile-tabs";
 import { useUserInfo } from "@/lib/axios/users";
 import { use } from "react";
 
@@ -14,10 +14,11 @@ interface PageParams {
     id: string;
 }
 
-const ProfileDetails = ({ params, searchParams }: { params: Promise<PageParams>, searchParams: URLProps['searchParams'] }) => {
+const ProfileDetails = ({ params }: { params: Promise<PageParams> }) => {
     const { userId: clerkId } = useAuth();
     const unwrappedParams = use(params);
     const { data: userInfo, isLoading } = useUserInfo(unwrappedParams.id);
+    console.log(userInfo);
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -120,6 +121,14 @@ const ProfileDetails = ({ params, searchParams }: { params: Promise<PageParams>,
                         <span className="text-xl font-semibold text-[#FF7000]">{totalAnswers}</span>
                     </div>
                 </div>
+            </div>
+
+            {/* Profile Tabs for Questions and Answers */}
+            <div className="mx-auto w-[90%] mb-8">
+                <ProfileTabs
+                    clerkId={user.clerkId}
+                    isOwnProfile={clerkId === user.clerkId}
+                />
             </div>
         </div>
     );
