@@ -16,6 +16,7 @@ export interface QuestionWithAuthor {
     upvoteCount: number;
     downvoteCount: number;
     totalVotes: number;
+    answerCount: number;
     tags: Array<{ id: number; name: string; description: string }>;
     author: {
         id: number | null;

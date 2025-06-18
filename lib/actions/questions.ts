@@ -106,6 +106,10 @@ export async function getQuestions(params: GetQuestionsParams): Promise<{ questi
                            COUNT(CASE WHEN ${votes.type} = 'downvote' THEN 1 END)
                     FROM ${votes} 
                     WHERE ${votes.questionId} = ${questions.id}
+                )`,
+                answerCount: sql<number>`(
+                    SELECT COUNT(*) FROM ${answers} 
+                    WHERE ${answers.questionId} = ${questions.id}
                 )`
             })
             .from(questions)
@@ -239,6 +243,10 @@ export async function getQuestionById(params: GetQuestionByIdParams) {
                            COUNT(CASE WHEN ${votes.type} = 'downvote' THEN 1 END)
                     FROM ${votes} 
                     WHERE ${votes.questionId} = ${questions.id}
+                )`,
+                answerCount: sql<number>`(
+                    SELECT COUNT(*) FROM ${answers} 
+                    WHERE ${answers.questionId} = ${questions.id}
                 )`
             })
             .from(questions)
