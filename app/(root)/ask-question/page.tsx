@@ -23,8 +23,8 @@ const AskQuestionPage = async () => {
     }
 
     return (
-        <div className="mt-10 px-6 sm:px-12">
-            <h1 className="h1-bold text-dark100_light900">Ask a question</h1>
+        <div className="mt-4 px-6 sm:px-12">
+            <h1 className="text-2xl font-bold">Ask a question</h1>
             <div className="mt-9">
                 <Question userId={user.user!.id} />
             </div>

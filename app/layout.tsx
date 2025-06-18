@@ -1,9 +1,6 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Providers from "@/lib/context/provider";
-
-
 
 const inter = Inter({
   subsets: ["latin"],

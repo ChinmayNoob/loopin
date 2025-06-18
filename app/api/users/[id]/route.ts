@@ -4,15 +4,16 @@ import { users } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
 
 type Params = {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 };
 
 // GET /api/users/[id] - Get user by ID
 export async function GET(request: NextRequest, { params }: Params) {
     try {
-        const userId = parseInt(params.id);
+        const { id } = await params;
+        const userId = parseInt(id);
 
         if (isNaN(userId)) {
             return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
@@ -36,7 +37,8 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PUT /api/users/[id] - Update user by ID
 export async function PUT(request: NextRequest, { params }: Params) {
     try {
-        const userId = parseInt(params.id);
+        const { id } = await params;
+        const userId = parseInt(id);
 
         if (isNaN(userId)) {
             return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
@@ -45,7 +47,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
         const updateData = await request.json();
 
         // Remove id and clerkId from update data to prevent modification
-        const { id, clerkId, ...allowedUpdates } = updateData;
+        const allowedUpdates = { ...updateData };
+        delete allowedUpdates.id;
+        delete allowedUpdates.clerkId;
 
         const [updatedUser] = await db
             .update(users)
@@ -67,7 +71,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 // DELETE /api/users/[id] - Delete user by ID
 export async function DELETE(request: NextRequest, { params }: Params) {
     try {
-        const userId = parseInt(params.id);
+        const { id } = await params;
+        const userId = parseInt(id);
 
         if (isNaN(userId)) {
             return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });

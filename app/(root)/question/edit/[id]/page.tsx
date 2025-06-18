@@ -1,7 +1,7 @@
 'use client'
 
 import EditQuestion from "@/components/forms/edit-question";
-import { useQuestionInfo } from "@/lib/axios/questions";
+import { useQuestionById } from "@/lib/axios/questions";
 import { use } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -13,7 +13,7 @@ interface PageParams {
 
 const EditQuestionPage = ({ params }: { params: Promise<PageParams> }) => {
     const unwrappedParams = use(params);
-    const { data: questionInfo, isLoading, error } = useQuestionInfo(unwrappedParams.id);
+    const { data: questionInfo, isLoading, error } = useQuestionById({ questionId: parseInt(unwrappedParams.id) });
 
     if (isLoading) {
         return (
@@ -29,7 +29,7 @@ const EditQuestionPage = ({ params }: { params: Promise<PageParams> }) => {
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-[#000000] dark:text-[#FFFFFF] mb-2">Question not found</h2>
                     <p className="text-[#5C5C7B] dark:text-[#858EAD] mb-4">
-                        The question you're looking for doesn't exist or has been removed.
+                        The question you&apos;re looking for doesn&apos;t exist or has been removed.
                     </p>
                     <Link href="/">
                         <Button className="primary-gradient text-light900_dark100">

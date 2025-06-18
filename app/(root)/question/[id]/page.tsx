@@ -10,7 +10,7 @@ import VoteButtons from "@/components/questions/vote-buttons";
 import DeleteQuestion from "@/components/questions/delete-question";
 import AnswerList from "@/components/answers/answer-list";
 import CreateAnswer from "@/components/answers/create-answer";
-import { useQuestionInfo } from "@/lib/axios/questions";
+import { useQuestionById } from "@/lib/axios/questions";
 import { useCurrentUser } from "@/lib/axios/users";
 import { FaArrowLeft } from "react-icons/fa";
 import { use } from "react";
@@ -22,13 +22,13 @@ interface PageParams {
 const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
     const unwrappedParams = use(params);
     console.log(unwrappedParams);
-    const { data: questionInfo, isLoading, error } = useQuestionInfo(unwrappedParams.id);
+    const { data: questionInfo, isLoading, error } = useQuestionById({ questionId: parseInt(unwrappedParams.id) });
     const { data: currentUser } = useCurrentUser();
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7000]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
         );
     }
@@ -37,12 +37,12 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
         return (
             <div className="flex items-center justify-center min-h-[400px] flex-col gap-4">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-[#000000] dark:text-[#FFFFFF] mb-2">Question not found</h2>
-                    <p className="text-[#5C5C7B] dark:text-[#858EAD] mb-4">
-                        The question you're looking for doesn't exist or has been removed.
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Question not found</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        The question you&apos;re looking for doesn&apos;t exist or has been removed.
                     </p>
                     <Link href="/">
-                        <Button className="primary-gradient text-light900_dark100">
+                        <Button className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
                             Back to Questions
                         </Button>
                     </Link>
@@ -59,8 +59,6 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
         createdAt,
         author,
         tags,
-        upvoteCount,
-        downvoteCount,
         totalVotes,
         answerCount
     } = questionInfo;
@@ -74,58 +72,58 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
             {/* Back Button */}
             <div className="mb-6">
                 <Link href="/">
-                    <Button variant="outline" className="border-[#cbcbcb] dark:border-[#212734] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F4F6F8] dark:hover:bg-[#151821] flex items-center gap-2">
-                        <FaArrowLeft className="size-4" />
+                    <Button variant="outline" className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 px-4 py-2 rounded-lg transition-colors">
+                        <FaArrowLeft className="w-4 h-4" />
                         Back to Questions
                     </Button>
                 </Link>
             </div>
 
             {/* Question Header */}
-            <div className="flex-start w-full flex-col">
+            <div className="flex flex-col items-start w-full">
                 <div className="mb-3 flex w-full flex-row items-center justify-between">
                     <Link
                         href={`/profile/${author?.clerkId}`}
                         className="flex items-center justify-start gap-3"
                     >
-                        <div className="size-[32px] overflow-hidden rounded-full">
+                        <div className="w-8 h-8 overflow-hidden rounded-full">
                             <Image
                                 src={author?.picture || "/assets/icons/avatar.svg"}
                                 alt="user profile picture"
                                 width={32}
                                 height={32}
-                                className="size-full object-cover"
+                                className="w-full h-full object-cover"
                             />
                         </div>
                         <div className="flex flex-col">
-                            <p className="text-base font-semibold text-[#000000] dark:text-[#FFFFFF]">
+                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
                                 {author?.name || "Unknown User"}
                             </p>
-                            <p className="text-sm text-[#5C5C7B] dark:text-[#858EAD]">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                 @{author?.username || "unknown"}
                             </p>
                         </div>
                     </Link>
 
-                    <span className="text-sm text-[#5C5C7B] dark:text-[#858EAD] flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                         <Image
                             src="/assets/icons/clock.svg"
                             alt="time"
                             width={16}
                             height={16}
-                            className="invert-0 dark:invert"
+                            className="opacity-60"
                         />
                         {getTimestamp(createdAt)}
                     </span>
                 </div>
 
-                <h1 className="text-3xl font-bold leading-tight text-[#000000] dark:text-[#FFFFFF] mt-4 mb-6">
+                <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-gray-100 mt-4 mb-6">
                     {title}
                 </h1>
             </div>
 
             {/* Question Content */}
-            <div className="prose prose-base max-w-none text-[#212734] dark:text-[#DCE3F1] mb-8">
+            <div className="prose prose-base max-w-none text-gray-800 dark:text-gray-200 mb-8">
                 <ParseHTML
                     data={content}
                     classname="whitespace-pre-wrap leading-relaxed"
@@ -148,18 +146,16 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
                 <div className="flex items-center gap-6">
                     <VoteButtons
                         questionId={id}
-                        upvotes={upvoteCount}
-                        downvotes={downvoteCount}
                         totalVotes={totalVotes}
                     />
 
-                    <div className="flex items-center gap-2 text-[#5C5C7B] dark:text-[#858EAD]">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Image
                             src="/assets/icons/eye.svg"
                             alt="views"
                             width={16}
                             height={16}
-                            className="invert-0 dark:invert"
+                            className="opacity-60"
                         />
                         <span className="text-sm">
                             {views || 0} view{(views || 0) !== 1 ? 's' : ''}
@@ -169,10 +165,10 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="border-t border-[#cbcbcb] dark:border-[#212734] pt-6">
+            <div className="border-t border-gray-300 dark:border-gray-600 pt-6">
                 <div className="flex gap-4 flex-wrap">
                     <Link href="/">
-                        <Button variant="outline" className="border-[#cbcbcb] dark:border-[#212734] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F4F6F8] dark:hover:bg-[#151821]">
+                        <Button variant="outline" className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
                             Back to Questions
                         </Button>
                     </Link>
@@ -181,7 +177,7 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
                     {isAuthor && (
                         <>
                             <Link href={`/question/edit/${id}`}>
-                                <Button variant="outline" className="border-[#cbcbcb] dark:border-[#212734] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F4F6F8] dark:hover:bg-[#151821]">
+                                <Button variant="outline" className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
                                     Edit Question
                                 </Button>
                             </Link>
@@ -190,7 +186,7 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
                     )}
 
                     <Link href="/ask-question">
-                        <Button className="primary-gradient text-light900_dark100">
+                        <Button className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
                             Ask a Question
                         </Button>
                     </Link>
