@@ -106,9 +106,9 @@ export const assignBadges = (params: IBadgeParams) => {
 
   criteria.forEach((item) => {
     const { type, count } = item;
-    const badgeLevels: any = BADGE_CRITERIA[type];
+    const badgeLevels: Record<string, number> = BADGE_CRITERIA[type];
 
-    Object.keys(badgeLevels).forEach((level: any) => {
+    Object.keys(badgeLevels).forEach((level: string) => {
       if (count >= badgeLevels[level]) {
         badgeCounts[level as keyof BadgeCounts] += 1;
       }

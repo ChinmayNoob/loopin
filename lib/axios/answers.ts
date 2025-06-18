@@ -27,7 +27,7 @@ export function useCreateAnswer() {
 
     return useMutation({
         mutationFn: (params: CreateAnswerParams) => createAnswer(params),
-        onSuccess: (data, variables) => {
+        onSuccess: (_, variables) => {
             // Invalidate answers for this question
             queryClient.invalidateQueries({
                 queryKey: ["answers", variables.questionId]
@@ -47,7 +47,7 @@ export function useUpvoteAnswer() {
 
     return useMutation({
         mutationFn: (params: AnswerVoteParams) => upvoteAnswer(params),
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             // Invalidate answers for this answer's question
             queryClient.invalidateQueries({
                 queryKey: ["answers"],
@@ -69,7 +69,7 @@ export function useDownvoteAnswer() {
 
     return useMutation({
         mutationFn: (params: AnswerVoteParams) => downvoteAnswer(params),
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             // Invalidate answers for this answer's question
             queryClient.invalidateQueries({
                 queryKey: ["answers"],
@@ -91,7 +91,7 @@ export function useDeleteAnswer() {
 
     return useMutation({
         mutationFn: (params: DeleteAnswerParams) => deleteAnswer(params),
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             // Invalidate all answers queries to refresh the data
             queryClient.invalidateQueries({
                 queryKey: ["answers"],
