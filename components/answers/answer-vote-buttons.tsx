@@ -6,77 +6,73 @@ import { useUpvoteAnswer, useDownvoteAnswer } from "@/lib/axios/answers";
 import { useUser } from "@clerk/nextjs";
 import { getUserByClerkId } from "@/lib/actions/users";
 import { toast } from "sonner";
+import { useVoteStatus, useUpdateVoteStatus } from "@/lib/axios/interactions";
+
+interface VoteStatus {
+    questionId?: number;
+    answerId?: number;
+    type?: 'upvote' | 'downvote';
+    hasVote: boolean;
+}
 
 interface AnswerVoteButtonsProps {
     answerId: number;
-    upvotes: number;
-    downvotes: number;
     totalVotes: number;
+    voteStatus?: VoteStatus;
 }
 
-const AnswerVoteButtons = ({ answerId, upvotes, downvotes, totalVotes }: AnswerVoteButtonsProps) => {
+const AnswerVoteButtons = ({ answerId, totalVotes, voteStatus: preloadedVoteStatus }: AnswerVoteButtonsProps) => {
     const [currentVotes, setCurrentVotes] = useState(totalVotes);
-    const [hasUpvoted, setHasUpvoted] = useState(false);
-    const [hasDownvoted, setHasDownvoted] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [userId, setUserId] = useState<number | null>(null);
 
     const { user } = useUser();
     const pathname = usePathname();
     const upvoteAnswerMutation = useUpvoteAnswer();
     const downvoteAnswerMutation = useDownvoteAnswer();
 
-    // Update currentVotes when totalVotes prop changes (after refresh)
+    // Get user ID once and cache it
     useEffect(() => {
-        setCurrentVotes(totalVotes);
-    }, [totalVotes]);
-
-    // Check if user has already voted when component mounts
-    useEffect(() => {
-        const checkUserVote = async () => {
+        const fetchUserId = async () => {
             if (!user) {
-                setIsLoading(false);
+                setUserId(null);
                 return;
             }
 
             try {
                 const userResult = await getUserByClerkId(user.id);
-                if (!userResult.success) {
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Check if user has voted on this answer
-                const response = await fetch('/api/check-vote', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        answerId,
-                        userId: userResult.user!.id
-                    })
-                });
-
-                if (response.ok) {
-                    const voteData = await response.json();
-                    if (voteData.vote) {
-                        if (voteData.vote.type === 'upvote') {
-                            setHasUpvoted(true);
-                        } else if (voteData.vote.type === 'downvote') {
-                            setHasDownvoted(true);
-                        }
-                    }
+                if (userResult.success) {
+                    setUserId(userResult.user!.id);
                 }
             } catch (error) {
-                console.error("Error checking user vote:", error);
-            } finally {
-                setIsLoading(false);
+                console.error("Error fetching user:", error);
+                setUserId(null);
             }
         };
 
-        checkUserVote();
-    }, [user, answerId]);
+        fetchUserId();
+    }, [user]);
+
+    // Use the optimized vote status hook only if we don't have preloaded status
+    const { data: fetchedVoteStatus, isLoading: isLoadingVote } = useVoteStatus(
+        !preloadedVoteStatus && userId ? { answerId, userId } : null
+    );
+
+    // Use preloaded status if available, otherwise use fetched status
+    const voteStatus = preloadedVoteStatus || fetchedVoteStatus;
+
+    // Hook for updating vote status in cache
+    const { updateAnswerVote } = useUpdateVoteStatus();
+
+    // Update currentVotes when totalVotes prop changes (after refresh)
+    useEffect(() => {
+        setCurrentVotes(totalVotes);
+    }, [totalVotes]);
+
+    const hasUpvoted = !!(voteStatus?.hasVote && voteStatus?.type === 'upvote');
+    const hasDownvoted = !!(voteStatus?.hasVote && voteStatus?.type === 'downvote');
 
     const handleVote = async (type: 'upvote' | 'downvote') => {
-        if (!user) {
+        if (!user || !userId) {
             toast.error("Please sign in to vote");
             return;
         }
@@ -85,15 +81,6 @@ const AnswerVoteButtons = ({ answerId, upvotes, downvotes, totalVotes }: AnswerV
         if (isVoting) return;
 
         try {
-            // Get user from database
-            const userResult = await getUserByClerkId(user.id);
-            if (!userResult.success) {
-                toast.error("User not found");
-                return;
-            }
-
-            const userId = userResult.user!.id;
-
             if (type === 'upvote') {
                 await upvoteAnswerMutation.mutateAsync({
                     answerId,
@@ -105,12 +92,11 @@ const AnswerVoteButtons = ({ answerId, upvotes, downvotes, totalVotes }: AnswerV
 
                 if (hasUpvoted) {
                     setCurrentVotes(prev => prev - 1);
-                    setHasUpvoted(false);
+                    updateAnswerVote(answerId, userId, null);
                     toast.success("Vote removed");
                 } else {
                     setCurrentVotes(prev => prev + (hasDownvoted ? 2 : 1));
-                    setHasUpvoted(true);
-                    setHasDownvoted(false);
+                    updateAnswerVote(answerId, userId, 'upvote');
                     toast.success("Answer upvoted!");
                 }
             } else {
@@ -124,12 +110,11 @@ const AnswerVoteButtons = ({ answerId, upvotes, downvotes, totalVotes }: AnswerV
 
                 if (hasDownvoted) {
                     setCurrentVotes(prev => prev + 1);
-                    setHasDownvoted(false);
+                    updateAnswerVote(answerId, userId, null);
                     toast.success("Vote removed");
                 } else {
                     setCurrentVotes(prev => prev - (hasUpvoted ? 2 : 1));
-                    setHasDownvoted(true);
-                    setHasUpvoted(false);
+                    updateAnswerVote(answerId, userId, 'downvote');
                     toast.success("Answer downvoted");
                 }
             }
@@ -139,7 +124,7 @@ const AnswerVoteButtons = ({ answerId, upvotes, downvotes, totalVotes }: AnswerV
         }
     };
 
-    if (isLoading) {
+    if ((isLoadingVote && !preloadedVoteStatus) || (!userId && user)) {
         return (
             <div className="flex items-center gap-2">
                 <div className="animate-pulse bg-gray-200 rounded px-4 py-2 w-20 h-8"></div>

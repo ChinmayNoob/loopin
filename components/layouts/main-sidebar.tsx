@@ -121,15 +121,15 @@ const LeftSideBar = () => {
             </div>
             <SignedIn>
                 <SignOutButton>
-                    <Button className="min-h-[41px] w-full rounded-lg bg-dark-4 px-4 py-3 text-sm font-medium shadow-none dark:bg-light-1 ">
+                    <Button className="min-h-[41px] w-full rounded-lg px-4 py-3 text-sm font-medium ">
                         <Image
                             src="/assets/icons/logout.svg"
                             alt="login"
                             width={26}
                             height={26}
-                            className="invert dark:invert-0 lg:hidden "
+                            className="lg:hidden "
                         />
-                        <span className="text-light-1 dark:text-dark-1 max-lg:hidden">
+                        <span className="max-lg:hidden">
                             Sign-out
                         </span>
                     </Button>
@@ -139,28 +139,28 @@ const LeftSideBar = () => {
                 {/* if user is not logged in the content inside this will show */}
                 <div className="flex flex-col gap-3">
                     <SignInButton mode="modal">
-                        <Button className="min-h-[41px] w-full rounded-lg bg-dark-4 px-4 py-3 text-sm font-medium shadow-none dark:bg-light-1 ">
+                        <Button className="min-h-[41px] w-full rounded-lg px-4 py-3 text-sm font-medium ">
                             <Image
                                 src="/assets/icons/account.svg"
                                 alt="login"
                                 width={26}
                                 height={26}
-                                className="invert-0 dark:invert lg:hidden "
+                                className="lg:hidden "
                             />
-                            <span className="text-light-1 dark:text-dark-1 max-lg:hidden">
+                            <span className="">
                                 LogIn
                             </span>
                         </Button>
                     </SignInButton>
 
                     <SignUpButton mode="modal">
-                        <Button className="min-h-[41px] w-full rounded-lg border border-light-3/80 bg-dark-4 px-4 py-3 text-sm font-medium text-light-1 shadow-none dark:border-dark-4 dark:bg-light-1 dark:text-dark-1">
+                        <Button className="min-h-[41px] w-full rounded-lg px-4 py-3 text-sm font-medium">
                             <Image
                                 src="/assets/icons/sign-up.svg"
                                 alt="signup"
                                 width={26}
                                 height={26}
-                                className="invert-0 dark:invert lg:hidden "
+                                className="lg:hidden "
                             />
                             <span className="max-lg:hidden">SignUp</span>
                         </Button>

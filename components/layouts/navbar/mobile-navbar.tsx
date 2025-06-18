@@ -19,7 +19,7 @@ interface UserParams {
   user?: {
     name?: string;
     username?: string;
-    picture?: any;
+    picture?: string;
   };
   popularTags?: string | undefined;
 }
@@ -116,7 +116,7 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
                     {/* <SignedIn> is a clerk functionality that checks if user is authenticated, if yes then show content inside <SignedIn>   */}
                     <div className="size-[66px] overflow-hidden rounded-full ">
                       <Image
-                        src={user?.picture}
+                        src={user?.picture || "/assets/icons/avatar.svg"}
                         height={66}
                         width={66}
                         alt={`author`}
@@ -144,7 +144,7 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
                     <div className=" light-border border-t pt-5">
                       <h2 className="base-bold">Tags</h2>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {tags?.map((tag: any) => (
+                        {tags?.map((tag: { _id: string; name: string }) => (
                           <SheetClose asChild key={tag._id}>
                             <Link
                               href={`/tags/${tag._id}`}

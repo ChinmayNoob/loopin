@@ -14,9 +14,8 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { Editor } from "@tinymce/tinymce-react";
-import { Badge } from "../ui/badge";
 import Image from "next/image";
 import { useEditQuestion } from "@/lib/axios/questions";
 import { useCurrentUser } from "@/lib/axios/users";
@@ -84,7 +83,7 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
 
     const handleInputKeyDown = (
         e: React.KeyboardEvent<HTMLInputElement>,
-        field: any
+        field: { name: string; value: string[] }
     ) => {
         if (e.key === "Enter" && field.name === "tags") {
             e.preventDefault();
@@ -113,7 +112,7 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
         }
     };
 
-    const handleTagRemove = (tag: string, field: any) => {
+    const handleTagRemove = (tag: string, field: { value: string[] }) => {
         const newTags = field.value.filter((t: string) => t !== tag);
         form.setValue("tags", newTags);
     };
@@ -129,16 +128,16 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                     name="title"
                     render={({ field }) => (
                         <FormItem className="flex w-full flex-col">
-                            <FormLabel className="paragraph-semibold text-dark400_light800">
+                            <FormLabel className="text-base font-semibold text-gray-700 dark:text-gray-300">
                                 Question Title <span className="text-red-600">*</span>
                             </FormLabel>
                             <FormControl className="mt-3.5">
                                 <Input
-                                    className="no-focus paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 min-h-[56px] border"
+                                    className="w-full min-h-[56px] px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                                     {...field}
                                 />
                             </FormControl>
-                            <FormDescription className="body-regular text-dark100_light900 mt-2.5">
+                            <FormDescription className="text-sm text-gray-600 dark:text-gray-400 mt-2.5">
                                 Be specific and ask the question as if you&apos;re asking it to
                                 another person
                             </FormDescription>
@@ -151,7 +150,7 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                     name="content"
                     render={({ field }) => (
                         <FormItem className="flex w-full flex-col gap-3">
-                            <FormLabel className="paragraph-semibold text-dark400_light800">
+                            <FormLabel className="text-base font-semibold text-gray-700 dark:text-gray-300">
                                 Detailed explanation of your problem{" "}
                                 <span className="text-red-600">*</span>
                             </FormLabel>
@@ -159,7 +158,6 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                                 <Editor
                                     apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
                                     onInit={(_evt, editor) => {
-                                        // @ts-ignore
                                         editorRef.current = editor;
                                         setIsEditorReady(true);
                                     }}
@@ -201,7 +199,7 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                                     }}
                                 />
                             </FormControl>
-                            <FormDescription className="body-regular text-dark400_light800 mt-2.5">
+                            <FormDescription className="text-sm text-gray-600 dark:text-gray-400 mt-2.5">
                                 Include as many details as possible. The more you tell us, the
                                 easier it will be for others to help you.
                             </FormDescription>
@@ -214,41 +212,41 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                     name="tags"
                     render={({ field }) => (
                         <FormItem className="flex w-full flex-col">
-                            <FormLabel className="paragraph-semibold text-dark400_light800">
+                            <FormLabel className="text-base font-semibold text-gray-700 dark:text-gray-300">
                                 Tags <span className="text-red-600">*</span>
                             </FormLabel>
                             <FormControl className="mt-3.5">
                                 <div>
                                     <Input
                                         placeholder="Add tags..."
-                                        className="no-focus paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 min-h-[56px] border"
+                                        className="w-full min-h-[56px] px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                                         onKeyDown={(e) => handleInputKeyDown(e, field)}
                                         value={tagInputValue}
                                         onChange={(e) => setTagInputValue(e.target.value)}
                                     />
                                     {field.value && field.value.length > 0 && (
-                                        <div className="flex-start mt-2.5 gap-2.5">
-                                            {field.value.map((tag: any) => (
-                                                <Badge
+                                        <div className="flex flex-wrap items-start gap-2 mt-3">
+                                            {field.value.map((tag: string) => (
+                                                <div
                                                     key={tag}
-                                                    className="subtle-medium primary-gradient text-light400_light500 text-light900_dark100 flex items-center justify-center gap-2 rounded-md border-none p-2 capitalize"
+                                                    className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                                                     onClick={() => handleTagRemove(tag, field)}
                                                 >
-                                                    {tag}
+                                                    <span className="capitalize">{tag}</span>
                                                     <Image
                                                         src="/assets/icons/close.svg"
-                                                        alt="close"
-                                                        className="cursor-pointer object-contain invert dark:invert-0"
+                                                        alt="Remove tag"
+                                                        className="cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
                                                         width={12}
                                                         height={12}
                                                     />
-                                                </Badge>
+                                                </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
                             </FormControl>
-                            <FormDescription className="body-regular text-dark100_light900 mt-2.5">
+                            <FormDescription className="text-sm text-gray-600 dark:text-gray-400 mt-2.5">
                                 Add up to 3 tags to help others find your question. Press Enter after typing each tag.
                             </FormDescription>
                             <FormMessage className="text-red-500" />
@@ -259,7 +257,7 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                     <Button
                         type="button"
                         variant="outline"
-                        className="border-[#cbcbcb] dark:border-[#212734] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F4F6F8] dark:hover:bg-[#151821]"
+                        className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                         onClick={() => router.push(`/question/${questionId}`)}
                         disabled={editQuestionMutation.isPending}
                     >
@@ -267,12 +265,12 @@ const EditQuestion = ({ questionId, initialData }: Props) => {
                     </Button>
                     <Button
                         type="submit"
-                        className="primary-gradient text-light900_dark100 w-fit"
+                        className="w-fit px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={editQuestionMutation.isPending}
                     >
                         {editQuestionMutation.isPending ? (
                             <>
-                                <Loader className="text-light900_dark100 my-2 size-4 animate-spin" />
+                                <Loader className="w-4 h-4 animate-spin mr-2" />
                                 Updating...
                             </>
                         ) : (

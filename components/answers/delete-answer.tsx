@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -16,8 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useDeleteAnswer } from "@/lib/axios/answers";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-import Image from "next/image";
-import { FaTrash } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 
 interface DeleteAnswerProps {
     answerId: number;
@@ -53,7 +52,7 @@ const DeleteAnswer = ({ answerId }: DeleteAnswerProps) => {
                     size="sm"
                     className="border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                 >
-                    <FaTrash className="size-4" />
+                    <FaTrashAlt className="size-4" />
                     Delete
                 </Button>
             </AlertDialogTrigger>

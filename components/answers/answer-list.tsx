@@ -9,9 +9,16 @@ import Image from "next/image";
 import { getTimestamp } from "@/lib/utils";
 import ParseHTML from "@/components/common/parse-html";
 import { Button } from "@/components/ui/button";
-import { usePathname } from "next/navigation";
 import AnswerVoteButtons from "./answer-vote-buttons";
 import DeleteAnswer from "./delete-answer";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface AnswerListProps {
     questionId: number;
@@ -22,9 +29,8 @@ const AnswerList = ({ questionId, totalAnswers }: AnswerListProps) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentFilter, setCurrentFilter] = useState("recent");
     const { data: currentUser } = useCurrentUser();
-    const pathname = usePathname();
 
-    const { data: answersData, isLoading: loading, error } = useAnswers({
+    const { data: answersData, isLoading: loading } = useAnswers({
         questionId,
         page: currentPage,
         sortBy: currentFilter,
@@ -62,17 +68,20 @@ const AnswerList = ({ questionId, totalAnswers }: AnswerListProps) => {
                 {/* Filter Dropdown */}
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-[#5C5C7B] dark:text-[#858EAD]">Sort by:</span>
-                    <select
-                        value={currentFilter}
-                        onChange={(e) => handleFilterChange(e.target.value)}
-                        className="bg-white dark:bg-[#151821] border border-[#cbcbcb] dark:border-[#212734] rounded-md px-3 py-1 text-sm text-[#000000] dark:text-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF7000]"
-                    >
-                        {AnswerFilters.map((filter) => (
-                            <option key={filter.value} value={filter.value}>
-                                {filter.name}
-                            </option>
-                        ))}
-                    </select>
+                    <Select value={currentFilter} onValueChange={(value) => handleFilterChange(value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                {AnswerFilters.map((filter) => (
+                                    <SelectItem key={filter.value} value={filter.value}>
+                                        {filter.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -109,8 +118,6 @@ const AnswerList = ({ questionId, totalAnswers }: AnswerListProps) => {
                                 {/* Vote Buttons for Answers */}
                                 <AnswerVoteButtons
                                     answerId={answer.id}
-                                    upvotes={answer.upvoteCount}
-                                    downvotes={answer.downvoteCount}
                                     totalVotes={answer.totalVotes}
                                 />
 

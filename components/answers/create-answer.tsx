@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { useCreateAnswer } from "@/lib/axios/answers";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { useCurrentUser } from "@/lib/axios/users";
 import { useUser } from "@clerk/nextjs";
 import { getUserByClerkId } from "@/lib/actions/users";
 import { Editor } from "@tinymce/tinymce-react";
@@ -63,7 +62,7 @@ const CreateAnswer = ({ questionId }: CreateAnswerProps) => {
                 form.reset();
                 // Clear TinyMCE editor after submitting answer
                 if (editorRef.current) {
-                    const editor = editorRef.current as any;
+                    const editor = editorRef.current as { setContent: (content: string) => void };
                     editor.setContent("");
                 }
                 toast.success("Answer submitted successfully!");
@@ -112,7 +111,6 @@ const CreateAnswer = ({ questionId }: CreateAnswerProps) => {
                                     <Editor
                                         apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
                                         onInit={(_evt, editor) =>
-                                            // @ts-ignore
                                             (editorRef.current = editor)
                                         }
                                         onBlur={field.onBlur}

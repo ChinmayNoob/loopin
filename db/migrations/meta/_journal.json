@@ -8,6 +8,13 @@
       "when": 1749896646814,
       "tag": "0000_ancient_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750239084158,
+      "tag": "0001_worthless_beyonder",
+      "breakpoints": true
     }
   ]
 }
