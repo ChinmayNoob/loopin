@@ -5,19 +5,31 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
     try {
-        const { questionId, userId } = await request.json();
+        const { questionId, answerId, userId } = await request.json();
 
-        if (!questionId || !userId) {
-            return NextResponse.json({ error: "Missing questionId or userId" }, { status: 400 });
+        if (!userId || (!questionId && !answerId)) {
+            return NextResponse.json({ error: "Missing userId and either questionId or answerId" }, { status: 400 });
         }
 
-        // Check if user has voted on this question
-        const existingVote = await db.query.votes.findFirst({
-            where: and(
-                eq(votes.questionId, questionId),
-                eq(votes.userId, userId)
-            ),
-        });
+        let existingVote;
+
+        if (questionId) {
+            // Check if user has voted on this question
+            existingVote = await db.query.votes.findFirst({
+                where: and(
+                    eq(votes.questionId, questionId),
+                    eq(votes.userId, userId)
+                ),
+            });
+        } else if (answerId) {
+            // Check if user has voted on this answer
+            existingVote = await db.query.votes.findFirst({
+                where: and(
+                    eq(votes.answerId, answerId),
+                    eq(votes.userId, userId)
+                ),
+            });
+        }
 
         return NextResponse.json({ vote: existingVote });
     } catch (error) {

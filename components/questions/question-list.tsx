@@ -56,7 +56,7 @@ export default function QuestionsList({ params, clerkId }: QuestionsListProps) {
                         downvotes={question.downvoteCount}
                         totalVotes={question.totalVotes}
                         views={question.views || 0}
-                        answers={[]}
+                        answerCount={question.answerCount}
                         createdAt={question.createdAt}
                         clerkId={clerkId}
                     />
