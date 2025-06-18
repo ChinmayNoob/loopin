@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { questions, tags, questionTags, users, votes, interactions, answers } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import {
     CreateQuestionParams,
     DeleteQuestionParams,
@@ -31,7 +31,7 @@ export async function getQuestions(params: GetQuestionsParams): Promise<{ questi
         }
 
         let orderBy = desc(questions.createdAt);
-        let additionalConditions = [];
+        const additionalConditions = [];
 
         switch (filter) {
             case "newest":
@@ -150,18 +150,25 @@ export async function createQuestion(params: CreateQuestionParams) {
 
         // Create or get tags and create question-tag relations
         for (const tagName of tagNames) {
-            // Find or create tag
-            const [tag] = await db
-                .insert(tags)
-                .values({
-                    name: tagName,
-                    description: `Questions about ${tagName}`,
-                })
-                .onConflictDoUpdate({
-                    target: tags.name,
-                    set: { name: tagName },
-                })
-                .returning();
+            // Normalize tag name to uppercase to prevent duplicates
+            const normalizedTagName = tagName.toUpperCase().trim();
+
+            // First, try to find existing tag
+            let tag = await db.query.tags.findFirst({
+                where: eq(tags.name, normalizedTagName),
+            });
+
+            // If tag doesn't exist, create it
+            if (!tag) {
+                const [createdTag] = await db
+                    .insert(tags)
+                    .values({
+                        name: normalizedTagName,
+                        description: `Questions about ${normalizedTagName}`,
+                    })
+                    .returning();
+                tag = createdTag;
+            }
 
             // Create question-tag relation
             await db.insert(questionTags).values({
@@ -184,6 +191,9 @@ export async function createQuestion(params: CreateQuestionParams) {
             .where(eq(users.id, authorId));
 
         revalidatePath(path);
+        revalidatePath("/");
+        revalidatePath("/community");
+        revalidatePath("/collection");
         return { success: true, question };
     } catch (error) {
         console.error("Error creating question:", error);
@@ -432,23 +442,26 @@ export async function editQuestion(params: EditQuestionParams) {
             .set({ title, content })
             .where(eq(questions.id, questionId));
 
-        // If tags are provided, update them
-        if (tagNames && tagNames.length > 0) {
-            // Delete existing question-tag relations
-            await db.delete(questionTags).where(eq(questionTags.questionId, questionId));
+        // Always delete existing question-tag relations first
+        await db.delete(questionTags).where(eq(questionTags.questionId, questionId));
 
+        // If tags are provided, create new ones
+        if (tagNames && tagNames.length > 0) {
             // Create new tags and relations
             for (const tagName of tagNames) {
+                // Normalize tag name to uppercase to prevent duplicates
+                const normalizedTagName = tagName.toUpperCase().trim();
+
                 // Find or create tag
                 const [tag] = await db
                     .insert(tags)
                     .values({
-                        name: tagName,
-                        description: `Questions about ${tagName}`,
+                        name: normalizedTagName,
+                        description: `Questions about ${normalizedTagName}`,
                     })
                     .onConflictDoUpdate({
                         target: tags.name,
-                        set: { name: tagName },
+                        set: { name: normalizedTagName },
                     })
                     .returning();
 
@@ -569,3 +582,5 @@ export async function getRecommendedQuestions(params: RecommendedParams) {
         throw error;
     }
 }
+
+

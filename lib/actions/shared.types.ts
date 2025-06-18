@@ -164,13 +164,13 @@ export interface GetTopInteractedTagsParams {
 
 // Saved Questions Types
 export interface ToggleSaveQuestionParams {
-    userId: number;
+    userId: string; // clerkId
     questionId: number;
     path: string;
 }
 
 export interface GetSavedQuestionsParams {
-    userId: number;
+    clerkId: string;
     page?: number;
     pageSize?: number;
     filter?: string;
@@ -178,11 +178,17 @@ export interface GetSavedQuestionsParams {
 }
 
 export interface GetUserStatsParams {
-    userId: number;
+    clerkId: string;
     page?: number;
     pageSize?: number;
 }
 
 export interface DeleteUserParams {
     userId: number;
+}
+
+// Interaction Types
+export interface ViewQuestionParams {
+    questionId: number;
+    userId?: number;
 } 

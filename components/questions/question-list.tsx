@@ -1,9 +1,13 @@
 "use client";
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import QuestionCard from "@/components/cards/question-card";
 import { useQuestions } from "@/lib/axios/questions";
+import { useBatchVoteStatus } from "@/lib/axios/interactions";
 import { GetQuestionsParams } from "@/lib/actions/shared.types";
+import { useUser } from "@clerk/nextjs";
+import { getUserByClerkId } from "@/lib/actions/users";
+import { useEffect, useState } from 'react';
 
 interface QuestionsListProps {
     params: GetQuestionsParams;
@@ -12,6 +16,40 @@ interface QuestionsListProps {
 
 export default function QuestionsList({ params, clerkId }: QuestionsListProps) {
     const { data: result, isLoading, error } = useQuestions(params);
+    const { user } = useUser();
+    const [userId, setUserId] = useState<number | null>(null);
+
+    // Get user ID for batch vote checking
+    useEffect(() => {
+        const fetchUserId = async () => {
+            if (!user) {
+                setUserId(null);
+                return;
+            }
+
+            try {
+                const userResult = await getUserByClerkId(user.id);
+                if (userResult.success) {
+                    setUserId(userResult.user!.id);
+                }
+            } catch (error) {
+                console.error("Error fetching user:", error);
+                setUserId(null);
+            }
+        };
+
+        fetchUserId();
+    }, [user]);
+
+    // Extract question IDs for batch vote checking
+    const questionIds = useMemo(() => {
+        return result?.questions?.map(q => q.id) || [];
+    }, [result]);
+
+    // Batch check votes for all questions
+    const { data: voteStatusMap } = useBatchVoteStatus(
+        userId && questionIds.length > 0 ? { questionIds, userId } : null
+    );
 
     if (isLoading) {
         return (
@@ -36,31 +74,37 @@ export default function QuestionsList({ params, clerkId }: QuestionsListProps) {
     return (
         <div className="mt-8 flex w-full flex-col">
             {result && result.questions.length > 0 ? (
-                result.questions.map((question) => (
-                    <QuestionCard
-                        key={question.id}
-                        _id={question.id.toString()}
-                        title={question.title}
-                        tags={question.tags.map(tag => ({
-                            _id: tag.id.toString(),
-                            name: tag.name
-                        }))}
-                        author={{
-                            _id: question.author?.id?.toString() || question.authorId.toString(),
-                            clerkId: question.author?.clerkId || "",
-                            name: question.author?.name || "Unknown User",
-                            picture: question.author?.picture || "/assets/icons/avatar.svg",
-                            leetcodeProfile: question.author?.leetcodeProfile || "",
-                        }}
-                        upvotes={question.upvoteCount}
-                        downvotes={question.downvoteCount}
-                        totalVotes={question.totalVotes}
-                        views={question.views || 0}
-                        answerCount={question.answerCount}
-                        createdAt={question.createdAt}
-                        clerkId={clerkId}
-                    />
-                ))
+                result.questions.map((question) => {
+                    // Get vote status for this specific question
+                    const voteStatus = voteStatusMap?.get(`question-${question.id}`);
+
+                    return (
+                        <QuestionCard
+                            key={question.id}
+                            _id={question.id.toString()}
+                            title={question.title}
+                            tags={question.tags.map(tag => ({
+                                _id: tag.id.toString(),
+                                name: tag.name
+                            }))}
+                            author={{
+                                _id: question.author?.id?.toString() || question.authorId.toString(),
+                                clerkId: question.author?.clerkId || "",
+                                name: question.author?.name || "Unknown User",
+                                picture: question.author?.picture || "/assets/icons/avatar.svg",
+                                leetcodeProfile: question.author?.leetcodeProfile || "",
+                            }}
+                            upvotes={question.upvoteCount}
+                            downvotes={question.downvoteCount}
+                            totalVotes={question.totalVotes}
+                            views={question.views || 0}
+                            answerCount={question.answerCount}
+                            createdAt={question.createdAt}
+                            clerkId={clerkId}
+                            voteStatus={voteStatus}
+                        />
+                    );
+                })
             ) : (
                 <div className="mt-10 text-center">
                     <h2 className="h2-bold text-dark200_light900">No questions yet</h2>
