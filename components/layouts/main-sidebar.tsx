@@ -15,10 +15,16 @@ import {
 import { Button } from "../ui/button";
 
 const LeftSideBar = () => {
+    const [mounted, setMounted] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
     const { userId } = useAuth();
     const [links, setLinks] = useState(sidebarLinks);
+
+    // Prevent hydration mismatch by only rendering after component mounts
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (userId) {
@@ -44,6 +50,26 @@ const LeftSideBar = () => {
             }
         }
     }, [userId, pathname, router]);
+
+    // Return a skeleton version before mounting to prevent hydration mismatch
+    if (!mounted) {
+        return (
+            <section className="sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto bg-light-1 p-6 pt-36 dark:bg-dark-2 max-sm:hidden lg:w-[280px]">
+                <div className="flex flex-1 flex-col gap-4">
+                    {sidebarLinks.map((item, index) => (
+                        <div
+                            key={index}
+                            className="flex items-center justify-start gap-2 bg-transparent px-4 py-3"
+                        >
+                            <div className="size-[30px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse max-lg:hidden w-24" />
+                        </div>
+                    ))}
+                </div>
+                <div className="h-[41px] bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            </section>
+        );
+    }
 
     return (
         <section className="sticky left-0 top-0 flex h-screen flex-col justify-between overflow-y-auto bg-light-1 p-6 pt-36 dark:bg-dark-2 max-sm:hidden lg:w-[280px]">

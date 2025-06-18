@@ -5,8 +5,11 @@ import { getTimestamp } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import RenderTag from "@/components/common/render-tags";
+import ParseHTML from "@/components/common/parse-html";
 import VoteButtons from "@/components/questions/vote-buttons";
 import DeleteQuestion from "@/components/questions/delete-question";
+import AnswerList from "@/components/answers/answer-list";
+import CreateAnswer from "@/components/answers/create-answer";
 import { useQuestionInfo } from "@/lib/axios/questions";
 import { useCurrentUser } from "@/lib/axios/users";
 import { FaArrowLeft } from "react-icons/fa";
@@ -58,7 +61,8 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
         tags,
         upvoteCount,
         downvoteCount,
-        totalVotes
+        totalVotes,
+        answerCount
     } = questionInfo;
 
     // Check if current user is the author of the question
@@ -122,9 +126,9 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
 
             {/* Question Content */}
             <div className="prose prose-base max-w-none text-[#212734] dark:text-[#DCE3F1] mb-8">
-                <div
-                    className="whitespace-pre-wrap leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: content }}
+                <ParseHTML
+                    data={content}
+                    classname="whitespace-pre-wrap leading-relaxed"
                 />
             </div>
 
@@ -192,6 +196,12 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
                     </Link>
                 </div>
             </div>
+
+            {/* Answers Section */}
+            <AnswerList questionId={id} totalAnswers={answerCount || 0} />
+
+            {/* Create Answer Form */}
+            <CreateAnswer questionId={id} />
         </div>
     );
 };

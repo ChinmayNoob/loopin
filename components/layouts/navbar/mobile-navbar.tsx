@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Sheet,
   SheetClose,
@@ -65,9 +65,15 @@ const NavContent = () => {
 };
 
 const MobileNav = ({ user, popularTags }: UserParams) => {
+  const [mounted, setMounted] = useState(false);
   const { userId } = useAuth();
   const pTags = popularTags ? JSON.parse(popularTags) : [];
   const tags = pTags?.length > 10 ? pTags?.slice(0, 10) : pTags || [];
+
+  // Prevent hydration mismatch by only rendering after component mounts
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <Sheet>
@@ -100,97 +106,110 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
           </p>
         </Link>
 
-        <SignedIn>
-          <SheetClose asChild>
-            <Link href={`/profile/${userId}`}>
-              <div className="mt-8 flex w-full items-center justify-start gap-5 rounded-lg border p-3  shadow-lg dark:shadow-lg dark:shadow-zinc-900">
-                {/* <SignedIn> is a clerk functionality that checks if user is authenticated, if yes then show content inside <SignedIn>   */}
-                <div className="size-[66px] overflow-hidden rounded-full ">
-                  <Image
-                    src={user?.picture}
-                    height={66}
-                    width={66}
-                    alt={`author`}
-                    className="size-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <p className="base-bold">{user?.name}</p>
-                  <p className="dark:text-zinc-600">@{user?.username}</p>
-                </div>
-              </div>
-            </Link>
-          </SheetClose>
-        </SignedIn>
-
-        <div className="flex  flex-col justify-between gap-8 pb-10 ">
-          <div className="">
-            <SheetClose asChild className="">
-              {/* nav links */}
-              <NavContent />
-            </SheetClose>
-
+        {/* Only render Clerk-dependent content after mounting */}
+        {mounted && (
+          <>
             <SignedIn>
-              {tags && (
-                <div className=" light-border border-t pt-5">
-                  <h2 className="base-bold">Tags</h2>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {tags?.map((tag: any) => (
-                      <SheetClose asChild key={tag._id}>
-                        <Link
-                          href={`/tags/${tag._id}`}
-                          className="flex justify-between gap-2"
-                        >
-                          <Badge className="rounded-md border border-light-3 bg-transparent  px-4 py-2 uppercase  dark:border-dark-4">
-                            {tag.name}
-                          </Badge>
-                        </Link>
-                      </SheetClose>
-                    ))}
+              <SheetClose asChild>
+                <Link href={`/profile/${userId}`}>
+                  <div className="mt-8 flex w-full items-center justify-start gap-5 rounded-lg border p-3  shadow-lg dark:shadow-lg dark:shadow-zinc-900">
+                    {/* <SignedIn> is a clerk functionality that checks if user is authenticated, if yes then show content inside <SignedIn>   */}
+                    <div className="size-[66px] overflow-hidden rounded-full ">
+                      <Image
+                        src={user?.picture}
+                        height={66}
+                        width={66}
+                        alt={`author`}
+                        className="size-full object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="base-bold">{user?.name}</p>
+                      <p className="dark:text-zinc-600">@{user?.username}</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                </Link>
+              </SheetClose>
             </SignedIn>
-          </div>
 
-          <SignedIn>
-            <SignOutButton>
-              <Button className="small-medium primary-gradient flex min-h-[41px] w-full items-center justify-center gap-2 rounded-lg px-4 py-3 shadow-none ">
-                <Image
-                  src="/assets/icons/logout.svg"
-                  alt="login"
-                  width={26}
-                  height={26}
-                  className="invert dark:invert-0 lg:hidden "
-                />
-                <span className="text-light-1 dark:text-dark-1 ">Sign-out</span>
-              </Button>
-            </SignOutButton>
-          </SignedIn>
+            <div className="flex  flex-col justify-between gap-8 pb-10 ">
+              <div className="">
+                <SheetClose asChild className="">
+                  {/* nav links */}
+                  <NavContent />
+                </SheetClose>
 
-          <SignedOut>
-            {/* if user is not logged in the content inside this will show */}
-            <div className="flex flex-col gap-3">
-              <SheetClose asChild>
-                <Link href="/sign-in">
-                  <Button className="small-medium primary-gradient min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none ">
-                    <span className="text-light-1 dark:text-dark-1">LogIn</span>
+                <SignedIn>
+                  {tags && (
+                    <div className=" light-border border-t pt-5">
+                      <h2 className="base-bold">Tags</h2>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {tags?.map((tag: any) => (
+                          <SheetClose asChild key={tag._id}>
+                            <Link
+                              href={`/tags/${tag._id}`}
+                              className="flex justify-between gap-2"
+                            >
+                              <Badge className="rounded-md border border-light-3 bg-transparent  px-4 py-2 uppercase  dark:border-dark-4">
+                                {tag.name}
+                              </Badge>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </SignedIn>
+              </div>
+
+              <SignedIn>
+                <SignOutButton>
+                  <Button className="small-medium primary-gradient flex min-h-[41px] w-full items-center justify-center gap-2 rounded-lg px-4 py-3 shadow-none ">
+                    <Image
+                      src="/assets/icons/logout.svg"
+                      alt="login"
+                      width={26}
+                      height={26}
+                      className="invert dark:invert-0 lg:hidden "
+                    />
+                    <span className="text-light-1 dark:text-dark-1 ">Sign-out</span>
                   </Button>
-                </Link>
-              </SheetClose>
+                </SignOutButton>
+              </SignedIn>
 
-              <SheetClose asChild>
-                <Link href="/sign-up">
-                  <Button className="small-medium light-border-2 primary-gradient  min-h-[41px] w-full rounded-lg px-4 py-3 text-light-1 shadow-none dark:text-dark-1">
-                    <span className="text-light-1 dark:text-dark-1">
-                      SignUp
-                    </span>
-                  </Button>
-                </Link>
-              </SheetClose>
+              <SignedOut>
+                {/* if user is not logged in the content inside this will show */}
+                <div className="flex flex-col gap-3">
+                  <SheetClose asChild>
+                    <Link href="/sign-in">
+                      <Button className="small-medium primary-gradient min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none ">
+                        <span className="text-light-1 dark:text-dark-1">LogIn</span>
+                      </Button>
+                    </Link>
+                  </SheetClose>
+
+                  <SheetClose asChild>
+                    <Link href="/sign-up">
+                      <Button className="small-medium light-border-2 primary-gradient  min-h-[41px] w-full rounded-lg px-4 py-3 text-light-1 shadow-none dark:text-dark-1">
+                        <span className="text-light-1 dark:text-dark-1">
+                          SignUp
+                        </span>
+                      </Button>
+                    </Link>
+                  </SheetClose>
+                </div>
+              </SignedOut>
             </div>
-          </SignedOut>
-        </div>
+          </>
+        )}
+
+        {/* Loading state while waiting for mount */}
+        {!mounted && (
+          <div className="mt-8 flex flex-col gap-4">
+            <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

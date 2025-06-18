@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 import {
@@ -13,7 +13,20 @@ import { themes } from "@/constants";
 import { useTheme } from "@/lib/context/provider";
 
 const Theme = () => {
+    const [mounted, setMounted] = useState(false);
     const { mode, setMode } = useTheme();
+
+    // Prevent hydration mismatch by only rendering after component mounts
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Return a skeleton version before mounting to prevent hydration mismatch
+    if (!mounted) {
+        return (
+            <div className="size-9 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        );
+    }
 
     return (
         <Menubar className="relative border-none bg-transparent shadow-none">

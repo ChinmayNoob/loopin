@@ -23,7 +23,7 @@ interface QuestionProps {
     downvotes: number;
     totalVotes: number;
     views: number;
-    answers: Array<object>;
+    answerCount: number;
     createdAt: Date;
     clerkId?: string | null;
 }
@@ -38,7 +38,7 @@ const QuestionCard = (props: QuestionProps) => {
         downvotes,
         totalVotes,
         views,
-        answers,
+        answerCount,
         createdAt,
     } = props;
 
@@ -111,7 +111,7 @@ const QuestionCard = (props: QuestionProps) => {
                     />
                     <div className="flex items-center gap-1">
                         <span className="text-sm text-gray-500">
-                            {answers.length} answers
+                            {answerCount} answers
                         </span>
                     </div>
                     <div className="flex items-center gap-1">
