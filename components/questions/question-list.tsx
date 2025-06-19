@@ -1,21 +1,34 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import QuestionCard from "@/components/cards/question-card";
 import { useQuestions } from "@/lib/axios/questions";
 import { useBatchVoteStatus } from "@/lib/axios/interactions";
 import { GetQuestionsParams } from "@/lib/actions/shared.types";
 import { useUser } from "@clerk/nextjs";
 import { getUserByClerkId } from "@/lib/actions/users";
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface QuestionsListProps {
     params: GetQuestionsParams;
     clerkId: string | null;
+    showFilter?: boolean;
 }
 
-export default function QuestionsList({ params, clerkId }: QuestionsListProps) {
-    const { data: result, isLoading, error } = useQuestions(params);
+export default function QuestionsList({ params, clerkId, showFilter = false }: QuestionsListProps) {
+    const [filter, setFilter] = useState<'newest' | 'frequent' | 'unanswered'>('newest');
+    const { data: result, isLoading, error } = useQuestions({
+        ...params,
+        filter: showFilter ? filter : params.filter
+    });
     const { user } = useUser();
     const [userId, setUserId] = useState<number | null>(null);
 
@@ -73,6 +86,26 @@ export default function QuestionsList({ params, clerkId }: QuestionsListProps) {
 
     return (
         <div className="mt-8 flex w-full flex-col">
+            {/* Filter Controls - only show if showFilter is true */}
+            {showFilter && (
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex gap-2">
+                        <Select value={filter} onValueChange={(value) => setFilter(value as 'newest' | 'frequent' | 'unanswered')}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Sort by" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem value="newest">Newest</SelectItem>
+                                    <SelectItem value="frequent">Most Viewed</SelectItem>
+                                    <SelectItem value="unanswered">Unanswered</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            )}
+
             {result && result.questions.length > 0 ? (
                 result.questions.map((question) => {
                     // Get vote status for this specific question

@@ -1,17 +1,13 @@
+"use client";
+
 import React from 'react'
 import { Button } from "@/components/ui/button";
-import { auth } from "@clerk/nextjs/server";
-import { Metadata } from "next";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import QuestionsList from "@/components/questions/question-list";
 
-export const metadata: Metadata = {
-    title: "Home",
-    description: "Home page",
-};
-
-export default async function Home() {
-    const { userId } = await auth();
+export default function Home() {
+    const { user } = useUser();
 
     return (
         <div className="px-2 sm:px-12 mt-4">
@@ -29,7 +25,8 @@ export default async function Home() {
                     page: 1,
                     pageSize: 10,
                 }}
-                clerkId={userId}
+                clerkId={user?.id || null}
+                showFilter={true}
             />
         </div>
     );
