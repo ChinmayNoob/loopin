@@ -46,7 +46,7 @@ const ProfileDetails = ({ params }: { params: Promise<PageParams> }) => {
                         className="invert-0 dark:invert max-sm:size-16 sm:size-20 md:size-24"
                     />
                     <p className="font-spaceGrotesk font-bold text-[#000000] dark:text-[#FFFFFF] max-sm:text-4xl sm:text-5xl md:text-6xl">
-                        Tuff
+                        Loopin
                     </p>
                 </div>
                 <div className="absolute left-6 top-full -translate-y-1/2 z-10">

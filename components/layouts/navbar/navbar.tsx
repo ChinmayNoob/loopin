@@ -44,11 +44,11 @@ const Navbar = () => {
                         src="/assets/logo.svg"
                         width={28}
                         height={28}
-                        alt="Tuff"
+                        alt="Loopin"
                         className="size-9 invert-0 dark:invert"
                     />
                     <p className="font-spaceGrotesk font-bold text-2xl max-sm:hidden">
-                        Tuff
+                        Loopin
                     </p>
                 </Link>
 
@@ -68,11 +68,11 @@ const Navbar = () => {
                     src="/assets/logo.svg"
                     width={28}
                     height={28}
-                    alt="Tuff"
+                    alt="Loopin"
                     className="size-9 invert-0 dark:invert"
                 />
                 <p className="font-spaceGrotesk font-bold text-2xl max-sm:hidden">
-                    Tuff
+                    Loopin
                 </p>
             </Link>
 

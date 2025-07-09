@@ -98,11 +98,11 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
             src="/assets/logo.svg"
             width={28}
             height={28}
-            alt="Tuff"
+            alt="Loopin"
             className="size-9 invert-0 dark:invert"
           />
           <p className="h2-bold font-spaceGrotesk ">
-            Tuff
+            Loopin
           </p>
         </Link>
 
