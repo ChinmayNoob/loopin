@@ -1,23 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { use } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useGetAllLoops } from "@/lib/axios/loops";
 import { useUser } from "@clerk/nextjs";
 import LoopsList from "@/components/loops/loops-list";
-import { useSearchParams } from "next/navigation";
-import { useCurrentUser } from "@/lib/axios/users";
 
-const LoopsPage = () => {
+interface PageProps {
+    searchParams: {
+        q?: string;
+        filter?: string;
+        page?: string;
+    };
+}
+
+const LoopsPage = ({ searchParams: searchParamsPromise }: { searchParams: Promise<PageProps['searchParams']> }) => {
     const { user: clerkUser, isLoaded } = useUser();
-    const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
-    const searchParams = useSearchParams();
+    const searchParams = use(searchParamsPromise);
 
-    const searchQuery = searchParams.get("q") ?? "";
-    const filter = (searchParams.get("filter") ?? "newest") as "newest" | "popular" | "active";
-    const page = parseInt(searchParams.get("page") ?? "1");
+    const searchQuery = searchParams.q ?? "";
+    const filter = (searchParams.filter ?? "newest") as "newest" | "popular" | "active";
+    const page = parseInt(searchParams.page ?? "1");
 
     const { data: loopsData, isLoading: isLoadingLoops } = useGetAllLoops({
         searchQuery,
@@ -26,7 +31,7 @@ const LoopsPage = () => {
         pageSize: 20,
     });
 
-    if (!isLoaded || isLoadingUser || isLoadingLoops) {
+    if (!isLoaded || isLoadingLoops) {
         return <div>Loading...</div>; // You might want to use a proper loading component here
     }
 
@@ -62,7 +67,6 @@ const LoopsPage = () => {
                 searchQuery={searchQuery}
                 filter={filter}
                 page={page}
-                userId={currentUser?.success && currentUser.user ? currentUser.user.id : null}
             />
         </div>
     );

@@ -4,13 +4,11 @@ import { getUserByClerkId } from "@/lib/actions/users";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-
-
 interface Props {
-    params: {
+    params: Promise<{
         id: string;
-    };
-    searchParams: { [key: string]: string | string[] | undefined };
+    }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const AskQuestionInLoopPage = async ({ params }: Props) => {
@@ -24,7 +22,9 @@ const AskQuestionInLoopPage = async ({ params }: Props) => {
         redirect("/sign-in");
     }
 
-    const loopId = parseInt(params.id);
+    // Await the params since they're now a Promise in Next.js 15
+    const resolvedParams = await params;
+    const loopId = parseInt(resolvedParams.id);
     console.log(loopId);
 
     if (isNaN(loopId)) {
