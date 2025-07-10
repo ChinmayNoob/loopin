@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { questions, tags, questionTags, users, votes, interactions, answers } from "@/db/schema";
+import { questions, tags, questionTags, users, votes, interactions, answers, loops } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import {
@@ -65,6 +65,7 @@ export async function getQuestions(params: GetQuestionsParams): Promise<{ questi
                 content: questions.content,
                 views: questions.views,
                 authorId: questions.authorId,
+                loopId: questions.loopId,
                 createdAt: questions.createdAt,
                 author: {
                     id: users.id,
@@ -75,6 +76,14 @@ export async function getQuestions(params: GetQuestionsParams): Promise<{ questi
                     picture: users.picture,
                     reputation: users.reputation,
                     leetcodeProfile: users.leetcodeProfile,
+                },
+                loop: {
+                    id: loops.id,
+                    name: loops.name,
+                    slug: loops.slug,
+                    description: loops.description,
+                    picture: loops.picture,
+                    createdOn: loops.createdOn,
                 },
                 tags: sql<Array<{ id: number; name: string; description: string }>>`(
                     SELECT COALESCE(
@@ -114,6 +123,7 @@ export async function getQuestions(params: GetQuestionsParams): Promise<{ questi
             })
             .from(questions)
             .leftJoin(users, eq(questions.authorId, users.id))
+            .leftJoin(loops, eq(questions.loopId, loops.id))
             .where(allConditions)
             .orderBy(orderBy)
             .limit(pageSize)
@@ -212,6 +222,7 @@ export async function getQuestionById(params: GetQuestionByIdParams) {
                 content: questions.content,
                 views: questions.views,
                 authorId: questions.authorId,
+                loopId: questions.loopId,
                 createdAt: questions.createdAt,
                 author: {
                     id: users.id,
@@ -222,6 +233,14 @@ export async function getQuestionById(params: GetQuestionByIdParams) {
                     picture: users.picture,
                     reputation: users.reputation,
                     leetcodeProfile: users.leetcodeProfile,
+                },
+                loop: {
+                    id: loops.id,
+                    name: loops.name,
+                    slug: loops.slug,
+                    description: loops.description,
+                    picture: loops.picture,
+                    createdOn: loops.createdOn,
                 },
                 tags: sql<Array<{ id: number; name: string; description: string }>>`(
                     SELECT COALESCE(
@@ -261,6 +280,7 @@ export async function getQuestionById(params: GetQuestionByIdParams) {
             })
             .from(questions)
             .leftJoin(users, eq(questions.authorId, users.id))
+            .leftJoin(loops, eq(questions.loopId, loops.id))
             .where(eq(questions.id, questionId));
 
         if (!question) {

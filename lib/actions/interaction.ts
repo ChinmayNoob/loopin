@@ -8,12 +8,11 @@ import { ViewQuestionParams } from "./shared.types";
 export async function viewQuestion(params: ViewQuestionParams) {
     try {
         const { questionId, userId } = params;
-
-        // Update view count for the question
+        // Update view count for the question, handling null values
         await db
             .update(questions)
             .set({
-                views: sql`${questions.views} + 1`
+                views: sql`COALESCE(${questions.views}, 0) + 1`
             })
             .where(eq(questions.id, questionId));
 

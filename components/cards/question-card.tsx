@@ -31,6 +31,14 @@ interface QuestionProps {
         picture: string;
         leetcodeProfile: string;
     };
+    loop?: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string;
+        picture: string;
+        createdOn: Date;
+    };
     upvotes: number;
     downvotes: number;
     totalVotes: number;
@@ -47,6 +55,7 @@ const QuestionCard = (props: QuestionProps) => {
         title,
         tags,
         author,
+        loop,
         totalVotes,
         views,
         answerCount,
@@ -56,6 +65,7 @@ const QuestionCard = (props: QuestionProps) => {
     const { user } = useUser();
     const toggleSaveMutation = useToggleSaveQuestion();
     const viewQuestionMutation = useViewQuestion();
+    const [isClient, setIsClient] = React.useState(false);
 
     const questionId = parseInt(_id);
 
@@ -63,6 +73,10 @@ const QuestionCard = (props: QuestionProps) => {
         user?.id || "",
         questionId
     );
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const handleSaveQuestion = async () => {
         if (!user?.id) {
@@ -108,6 +122,11 @@ const QuestionCard = (props: QuestionProps) => {
                             />
                         </div>
                         <div className="flex flex-col">
+                            {loop && (
+                                <Link href={`/loops/${loop.id}`} className="text-xs text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 font-medium">
+                                    {loop.name}
+                                </Link>
+                            )}
                             <p className="font-semibold text-gray-900 dark:text-gray-100">{author.name}</p>
                             <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {getTimestamp(createdAt)}
@@ -116,7 +135,7 @@ const QuestionCard = (props: QuestionProps) => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        {user && (
+                        {user && isClient && (
                             <button
                                 onClick={handleSaveQuestion}
                                 disabled={toggleSaveMutation.isPending || isSavedLoading}

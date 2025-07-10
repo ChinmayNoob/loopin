@@ -29,6 +29,10 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
         ...params,
         filter: showFilter ? filter : params.filter
     });
+
+    // Fixed: Use question.loop instead of question.loops
+    console.log(result);
+
     const { user } = useUser();
     const [userId, setUserId] = useState<number | null>(null);
 
@@ -120,6 +124,15 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
                                 _id: tag.id.toString(),
                                 name: tag.name
                             }))}
+                            // Fixed: Use question.loop instead of question.loops
+                            loop={{
+                                id: question.loop?.id || question.loopId || 0,
+                                name: question.loop?.name || "No Community",
+                                slug: question.loop?.slug || "",
+                                description: question.loop?.description || "",
+                                picture: question.loop?.picture || "",
+                                createdOn: question.loop?.createdOn || new Date(),
+                            }}
                             author={{
                                 _id: question.author?.id?.toString() || question.authorId.toString(),
                                 clerkId: question.author?.clerkId || "",
@@ -148,4 +161,4 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
             )}
         </div>
     );
-} 
+}

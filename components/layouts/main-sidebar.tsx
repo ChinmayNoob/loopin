@@ -100,13 +100,20 @@ const LeftSideBar = () => {
                                 } flex items-center justify-start gap-2 bg-transparent px-4 py-3 transition-colors`}
                         >
                             {/* checks if the link is active using isActive if yes apply needed classes */}
-                            <Image
-                                src={item.imgURL}
-                                width={30}
-                                height={30}
-                                alt={item.label}
-                                className="invert dark:invert-0"
-                            />
+                            {item.icon ? (
+                                <item.icon
+                                    size={30}
+                                    className={`${isActive ? "" : "text-zinc-500 dark:text-zinc-400"}`}
+                                />
+                            ) : (
+                                <Image
+                                    src={item.imgURL!}
+                                    width={30}
+                                    height={30}
+                                    alt={item.label}
+                                    className="invert dark:invert-0"
+                                />
+                            )}
                             <p
                                 className={`${isActive
                                     ? "font-bold"

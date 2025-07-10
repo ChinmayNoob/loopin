@@ -1,8 +1,10 @@
 
 import { BADGE_CRITERIA } from "@/constants";
+import { IconType } from 'react-icons';
 
 export interface SidebarLink {
-    imgURL: string;
+    imgURL?: string;
+    icon?: IconType;
     route: string;
     label: string;
     classname: string;
