@@ -12,6 +12,7 @@ import {
     getLoopMembers,
     getPopularLoops,
     askQuestionInLoop,
+    isUserMemberOfLoop, // Add this import
 } from "@/lib/actions/loops";
 import {
     CreateLoopParams,
@@ -87,6 +88,14 @@ export const useJoinLoop = () => {
                 // Invalidate loop data and user's loops
                 queryClient.invalidateQueries({ queryKey: ["loop", variables.loopId] });
                 queryClient.invalidateQueries({ queryKey: ["user-loops"] });
+                // Invalidate membership status
+                queryClient.invalidateQueries({
+                    queryKey: ["loop-membership", variables.loopId, variables.userId]
+                });
+                // Invalidate loop members list
+                queryClient.invalidateQueries({
+                    queryKey: ["loop-members", variables.loopId]
+                });
             }
         },
     });
@@ -103,6 +112,14 @@ export const useLeaveLoop = () => {
                 // Invalidate loop data and user's loops
                 queryClient.invalidateQueries({ queryKey: ["loop", variables.loopId] });
                 queryClient.invalidateQueries({ queryKey: ["user-loops"] });
+                // Invalidate membership status
+                queryClient.invalidateQueries({
+                    queryKey: ["loop-membership", variables.loopId, variables.userId]
+                });
+                // Invalidate loop members list
+                queryClient.invalidateQueries({
+                    queryKey: ["loop-members", variables.loopId]
+                });
             }
         },
     });
@@ -185,5 +202,19 @@ export const useAskQuestionInLoop = () => {
                 queryClient.invalidateQueries({ queryKey: ["questions"] });
             }
         },
+    });
+};
+
+// Check if user is a member of a loop
+export const useCheckLoopMembership = (loopId: number, userId: number | undefined) => {
+    return useQuery({
+        queryKey: ["loop-membership", loopId, userId],
+        queryFn: () => isUserMemberOfLoop(loopId, userId!),
+        enabled: !!loopId && !!userId,
+        staleTime: 1000 * 60 * 30, // 30 minutes
+        gcTime: 1000 * 60 * 60, // 1 hour
+        refetchOnWindowFocus: false, // Don't refetch when window regains focus
+        refetchOnReconnect: false, // Don't refetch when reconnecting
+        retry: false, // Don't retry on failure
     });
 };

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserMinus, Loader } from "lucide-react";
-import { joinLoop, leaveLoop } from "@/lib/actions/loops";
-import { usePathname, useRouter } from "next/navigation";
+import { useJoinLoop, useLeaveLoop } from "@/lib/axios/loops";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 interface JoinLeaveButtonProps {
@@ -14,53 +14,48 @@ interface JoinLeaveButtonProps {
 }
 
 const JoinLeaveButton = ({ loopId, userId, isMember }: JoinLeaveButtonProps) => {
-    const [isLoading, setIsLoading] = useState(false);
     const pathname = usePathname();
-    const router = useRouter();
+
+    const joinMutation = useJoinLoop();
+    const leaveMutation = useLeaveLoop();
+
+    const isLoading = joinMutation.isPending || leaveMutation.isPending;
 
     const handleJoinLoop = async () => {
-        setIsLoading(true);
         try {
-            const result = await joinLoop({
+            const result = await joinMutation.mutateAsync({
                 loopId,
                 userId,
                 path: pathname,
             });
 
-            if (result.success) {
-                toast.success("Successfully joined the community!");
-                router.refresh();
-            } else {
+            if (!result.success) {
                 toast.error(result.error || "Failed to join community");
+            } else {
+                toast.success("Successfully joined the community!");
             }
         } catch (error) {
             console.error("Error joining loop:", error);
             toast.error("Failed to join community");
-        } finally {
-            setIsLoading(false);
         }
     };
 
     const handleLeaveLoop = async () => {
-        setIsLoading(true);
         try {
-            const result = await leaveLoop({
+            const result = await leaveMutation.mutateAsync({
                 loopId,
                 userId,
                 path: pathname,
             });
 
-            if (result.success) {
-                toast.success("Successfully left the community!");
-                router.refresh();
-            } else {
+            if (!result.success) {
                 toast.error(result.error || "Failed to leave community");
+            } else {
+                toast.success("Successfully left the community!");
             }
         } catch (error) {
             console.error("Error leaving loop:", error);
             toast.error("Failed to leave community");
-        } finally {
-            setIsLoading(false);
         }
     };
 

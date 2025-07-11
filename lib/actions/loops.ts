@@ -612,8 +612,24 @@ export async function askQuestionInLoop(params: AskQuestionInLoopParams) {
 // Get loop members
 export async function getLoopMembers(params: GetLoopMembersParams) {
     try {
-        const { loopId, page = 1, pageSize = 20 } = params;
+        const { loopId, page = 1, pageSize = 20, filter = "all" } = params;
         const skipAmount = (page - 1) * pageSize;
+
+        let orderBy;
+        const whereConditions = [eq(loopMembers.loopId, loopId)];
+
+        switch (filter) {
+            case "admin":
+                whereConditions.push(eq(loopMembers.role, "admin"));
+                orderBy = desc(loopMembers.joinedAt);
+                break;
+            case "recent":
+                orderBy = desc(loopMembers.joinedAt);
+                break;
+            default: // "all"
+                orderBy = desc(loopMembers.joinedAt);
+                break;
+        }
 
         const members = await db
             .select({
@@ -628,15 +644,15 @@ export async function getLoopMembers(params: GetLoopMembersParams) {
             })
             .from(loopMembers)
             .innerJoin(users, eq(loopMembers.userId, users.id))
-            .where(eq(loopMembers.loopId, loopId))
-            .orderBy(desc(loopMembers.joinedAt))
+            .where(and(...whereConditions))
+            .orderBy(orderBy)
             .limit(pageSize)
             .offset(skipAmount);
 
         const totalCount = await db
             .select({ count: sql<number>`count(*)` })
             .from(loopMembers)
-            .where(eq(loopMembers.loopId, loopId))
+            .where(and(...whereConditions))
             .then((res) => res[0].count);
 
         const isNext = totalCount > skipAmount + members.length;

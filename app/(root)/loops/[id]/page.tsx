@@ -3,7 +3,7 @@
 import React, { use } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, MessageCircle, Calendar } from "lucide-react";
-import { useGetLoopById, useGetLoopQuestions } from "@/lib/axios/loops";
+import { useGetLoopById, useGetLoopQuestions, useCheckLoopMembership } from "@/lib/axios/loops";
 import { useCurrentUser } from "@/lib/axios/users";
 import Link from "next/link";
 import Image from "next/image";
@@ -32,6 +32,12 @@ const LoopDetailPage = ({ params, searchParams }: LoopDetailPageProps) => {
     // Get loop details
     const { data: loopInfo, isLoading: isLoopLoading, error: loopError } = useGetLoopById({ loopId });
     const { data: currentUser } = useCurrentUser();
+
+    // Check membership status
+    const { data: isMember = false } = useCheckLoopMembership(
+        loopId,
+        currentUser?.user?.id
+    );
 
     // Get questions parameters
     const searchQuery = unwrappedSearchParams.q || "";
@@ -75,10 +81,6 @@ const LoopDetailPage = ({ params, searchParams }: LoopDetailPageProps) => {
         router.push('/404');
         return null;
     }
-
-    // For now, we'll handle membership through the JoinLeaveButton component
-    // which will make the API call to check membership status
-    const isMember = false; // This will be handled by the JoinLeaveButton component
 
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -134,12 +136,20 @@ const LoopDetailPage = ({ params, searchParams }: LoopDetailPageProps) => {
                                     isMember={isMember}
                                 />
                                 {isMember && (
-                                    <Link href={`/loops/${loopId}/ask-question`}>
-                                        <Button className="flex items-center gap-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black h-10 px-4">
-                                            <Plus size={16} />
-                                            Ask Question
-                                        </Button>
-                                    </Link>
+                                    <>
+                                        <Link href={`/loops/${loopId}/ask-question`}>
+                                            <Button className="flex items-center gap-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black h-10 px-4">
+                                                <Plus size={16} />
+                                                Ask Question
+                                            </Button>
+                                        </Link>
+                                        <Link href={`/loops/${loopId}/members`}>
+                                            <Button variant="outline" className="flex items-center gap-2 h-10 px-4">
+                                                <Users size={16} />
+                                                Members
+                                            </Button>
+                                        </Link>
+                                    </>
                                 )}
                             </>
                         )}

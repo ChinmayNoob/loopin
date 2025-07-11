@@ -299,6 +299,7 @@ export interface GetLoopMembersParams {
     loopId: number;
     page?: number;
     pageSize?: number;
+    filter?: "all" | "admin" | "recent";
 }
 
 export interface LoopMemberWithUser {
