@@ -8,7 +8,6 @@ import { IoBookmarks, IoBookmarksOutline } from "react-icons/io5";
 import { useToggleSaveQuestion, useIsQuestionSaved } from "@/lib/axios/users";
 import { useViewQuestion } from "@/lib/axios/interactions";
 import { useUser } from "@clerk/nextjs";
-import { toast } from "sonner";
 
 interface VoteStatus {
     questionId?: number;
@@ -80,22 +79,16 @@ const QuestionCard = (props: QuestionProps) => {
 
     const handleSaveQuestion = async () => {
         if (!user?.id) {
-            toast.error("Please sign in to save questions");
             return;
         }
 
         try {
-            const result = await toggleSaveMutation.mutateAsync({
+            await toggleSaveMutation.mutateAsync({
                 userId: user.id,
                 questionId,
                 path: "/",
             });
-
-            if (result.success) {
-                toast.success(result.saved ? "Question saved!" : "Question removed from saved");
-            }
         } catch (error) {
-            toast.error("Failed to save question");
             console.error("Error saving question:", error);
         }
     };
@@ -108,98 +101,108 @@ const QuestionCard = (props: QuestionProps) => {
     };
 
     return (
-        <div className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700 px-6 pb-6 pt-5 xs:mt-1 sm:px-10">
-            <div className="flex flex-col items-start justify-between gap-4">
-                <div className="flex justify-between items-start w-full">
-                    <div className="flex items-start gap-2 px-2">
-                        <div className="overflow-hidden w-[28px] h-[28px] rounded-full">
-                            <Image
-                                src={author.picture}
-                                height={28}
-                                width={28}
-                                alt={`author`}
-                                className="object-cover w-full h-full"
-                            />
-                        </div>
-                        <div className="flex flex-col">
+        <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 p-6 mb-5 transition-all duration-300 hover:shadow-md">
+            {/* Top Section: Author and Save/Link icons */}
+            <div className="flex justify-between items-start gap-4">
+                {/* Author Info */}
+                <div className="flex items-start gap-3">
+                    <Link href={`/profile/${author.clerkId}`} className="flex-shrink-0">
+                        <Image
+                            src={author.picture}
+                            height={32}
+                            width={32}
+                            alt={`${author.name}'s avatar`}
+                            className="rounded-full object-cover"
+                        />
+                    </Link>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                                {author.name}
+                            </p>
                             {loop && (
-                                <Link href={`/loops/${loop.id}`} className="text-xs text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 font-medium">
-                                    {loop.name}
-                                </Link>
+                                <>
+                                    <span className="text-gray-400 dark:text-gray-600 text-xs">•</span>
+                                    <Link href={`/loops/${loop.id}`} className="text-xs text-primary-500 hover:text-primary-600 font-medium">
+                                        {loop.name}
+                                    </Link>
+                                </>
                             )}
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{author.name}</p>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {getTimestamp(createdAt)}
-                            </span>
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {user && isClient && (
-                            <button
-                                onClick={handleSaveQuestion}
-                                disabled={toggleSaveMutation.isPending || isSavedLoading}
-                                className="flex items-center justify-center hover:opacity-80 transition-opacity p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900"
-                                title={isSaved ? "Remove from saved" : "Save question"}
-                            >
-                                {isSaved ? (
-                                    <IoBookmarks size={16} className="text-primary-500" />
-                                ) : (
-                                    <IoBookmarksOutline size={16} className="text-gray-500 hover:text-orange-500" />
-                                )}
-                            </button>
-                        )}
-                        {author.leetcodeProfile && (
-                            <Link
-                                href={author.leetcodeProfile}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center hover:opacity-80 transition-opacity"
-                                title="LeetCode Profile"
-                            >
-                                <SiLeetcode
-                                    size={14}
-                                    className="text-orange-500 hover:text-orange-600 transition-colors"
-                                />
-                            </Link>
-                        )}
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            asked {getTimestamp(createdAt)}
+                        </span>
                     </div>
                 </div>
-                <div className="flex justify-between items-center w-full">
-                    <Link href={`/question/${_id}`} onClick={handleViewQuestion}>
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 line-clamp-1 flex-1 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
-                            {title}
-                        </h3>
-                    </Link>
+                {/* Action Icons */}
+                <div className="flex items-center gap-2">
+                    {user && isClient && (
+                        <button
+                            onClick={handleSaveQuestion}
+                            disabled={toggleSaveMutation.isPending || isSavedLoading}
+                            className="flex items-center justify-center p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            title={isSaved ? "Remove from saved" : "Save question"}
+                        >
+                            {isSaved ? (
+                                <IoBookmarks size={16} className="text-primary-500" />
+                            ) : (
+                                <IoBookmarksOutline size={16} className="text-gray-500 hover:text-[#4F46E8]" />
+                            )}
+                        </button>
+                    )}
+                    {author.leetcodeProfile && (
+                        <Link
+                            href={author.leetcodeProfile}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            title="LeetCode Profile"
+                        >
+                            <SiLeetcode
+                                size={16}
+                                className="text-orange-500"
+                            />
+                        </Link>
+                    )}
                 </div>
             </div>
 
-            <div className="md:flex md:justify-between md:items-center mt-6 flex w-full flex-col gap-2 md:flex-row">
-                <div className="flex flex-wrap gap-2 md:w-2/3">
-                    {tags.map((tag) => (
-                        <span
-                            key={tag._id}
-                            className="inline-block text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1 uppercase tracking-wide"
-                        >
-                            {tag.name}
-                        </span>
-                    ))}
-                </div>
+            {/* Middle Section: Title */}
+            <div className="mt-4">
+                <Link href={`/question/${_id}`} onClick={handleViewQuestion}>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 hover:text-[#4F46E8] dark:hover:text-[#4F46E8] transition-colors">
+                        {title}
+                    </h3>
+                </Link>
+            </div>
 
-                <div className="flex items-center gap-4">
-                    <VoteButtons
-                        questionId={parseInt(_id)}
-                        totalVotes={totalVotes}
-                    />
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mt-4">
+                {tags.map((tag) => (
+                    <span
+                        key={tag._id}
+                        className="inline-block text-xs font-medium bg-black dark:bg-[#4F46E8] text-white rounded-full px-3 py-1.5"
+                    >
+                        {tag.name}
+                    </span>
+                ))}
+            </div>
+
+
+            {/* Bottom Section: Stats */}
+            <div className="flex items-center justify-between mt-6">
+                <VoteButtons
+                    questionId={parseInt(_id)}
+                    totalVotes={totalVotes}
+                />
+                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {answerCount} answers
-                        </span>
+                        <span>{answerCount}</span>
+                        <span>answers</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {views} views
-                        </span>
+                        <span>{views}</span>
+                        <span>views</span>
                     </div>
                 </div>
             </div>

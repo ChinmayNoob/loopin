@@ -69,3 +69,10 @@ export interface IBadgeParams {
 
 export type BadgeCriteriaType = keyof typeof BADGE_CRITERIA;
 
+export interface VoteStatus {
+    questionId?: number;
+    answerId?: number;
+    type?: 'upvote' | 'downvote';
+    hasVote: boolean;
+}
+

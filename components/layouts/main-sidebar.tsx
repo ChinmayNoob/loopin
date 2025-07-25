@@ -95,7 +95,7 @@ const LeftSideBar = () => {
                             key={item.route}
                             href={item.route}
                             className={`${isActive
-                                ? "rounded-lg bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                                ? "rounded-lg bg-zinc-200 text-zinc-900 dark:bg-[#4F46E8] dark:text-zinc-50"
                                 : "text-zinc-500 dark:text-zinc-400"
                                 } flex items-center justify-start gap-2 bg-transparent px-4 py-3 transition-colors`}
                         >

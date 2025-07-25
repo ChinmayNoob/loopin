@@ -5,9 +5,7 @@ import QuestionCard from "@/components/cards/question-card";
 import { useQuestions } from "@/lib/axios/questions";
 import { useBatchVoteStatus } from "@/lib/axios/interactions";
 import { GetQuestionsParams } from "@/lib/actions/shared.types";
-import { useUser } from "@clerk/nextjs";
-import { getUserByClerkId } from "@/lib/actions/users";
-import { useEffect } from 'react';
+import { useCurrentUser } from "@/lib/axios/users";
 import {
     Select,
     SelectContent,
@@ -30,33 +28,9 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
         filter: showFilter ? filter : params.filter
     });
 
-    // Fixed: Use question.loop instead of question.loops
-    console.log(result);
-
-    const { user } = useUser();
-    const [userId, setUserId] = useState<number | null>(null);
-
-    // Get user ID for batch vote checking
-    useEffect(() => {
-        const fetchUserId = async () => {
-            if (!user) {
-                setUserId(null);
-                return;
-            }
-
-            try {
-                const userResult = await getUserByClerkId(user.id);
-                if (userResult.success) {
-                    setUserId(userResult.user!.id);
-                }
-            } catch (error) {
-                console.error("Error fetching user:", error);
-                setUserId(null);
-            }
-        };
-
-        fetchUserId();
-    }, [user]);
+    // Get current user from the custom hook
+    const { data: currentUserData } = useCurrentUser();
+    const userId = currentUserData?.user?.id;
 
     // Extract question IDs for batch vote checking
     const questionIds = useMemo(() => {

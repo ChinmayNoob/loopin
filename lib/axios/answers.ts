@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
     createAnswer,
     getAnswers,
@@ -38,6 +39,10 @@ export function useCreateAnswer() {
             });
             // Invalidate all questions to update answer counts
             queryClient.invalidateQueries({ queryKey: ["questions"] });
+            toast.success("Answer created successfully!");
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
         },
     });
 }
@@ -57,9 +62,10 @@ export function useUpvoteAnswer() {
             });
             // Invalidate user data to update reputation
             queryClient.invalidateQueries({ queryKey: ["user"] });
+            toast.success("Answer upvoted successfully!");
         },
-        onError: (error) => {
-            console.error("Error upvoting answer:", error);
+        onError: (error: Error) => {
+            toast.error(error.message);
         },
     });
 }
@@ -79,9 +85,10 @@ export function useDownvoteAnswer() {
             });
             // Invalidate user data to update reputation
             queryClient.invalidateQueries({ queryKey: ["user"] });
+            toast.success("Answer downvoted successfully!");
         },
-        onError: (error) => {
-            console.error("Error downvoting answer:", error);
+        onError: (error: Error) => {
+            toast.error(error.message);
         },
     });
 }
@@ -108,6 +115,10 @@ export function useDeleteAnswer() {
                     return query.queryKey[0] === "question";
                 }
             });
+            toast.success("Answer deleted successfully!");
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
         },
     });
 } 

@@ -1,6 +1,7 @@
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Providers from "@/lib/context/provider";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,6 +28,8 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <Toaster />
+
       </body>
     </html>
   );

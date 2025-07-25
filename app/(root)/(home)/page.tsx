@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import QuestionsList from "@/components/questions/question-list";
+import { FaPlus } from 'react-icons/fa';
 
 export default function Home() {
     const { user } = useUser();
@@ -16,6 +17,7 @@ export default function Home() {
 
                 <Link href={`/ask-question`} className="flex justify-end max-sm:w-full">
                     <Button className="px-4 py-2">
+                        <FaPlus className="mr-2"/>
                         Ask a Question
                     </Button>
                 </Link>
