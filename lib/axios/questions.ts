@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
     getQuestions,
     getQuestionById,
@@ -113,7 +114,15 @@ export function useUpvoteQuestion() {
 
             return { previousVote };
         },
+        onSuccess: (data, variables) => {
+            if (variables.hasupVoted) {
+                toast.success("Vote removed");
+            } else {
+                toast.success("Question upvoted!");
+            }
+        },
         onError: (err, variables, context) => {
+            toast.error("An error occurred while upvoting.");
             // Rollback on error
             if (context?.previousVote !== undefined) {
                 queryClient.setQueryData(
@@ -126,11 +135,10 @@ export function useUpvoteQuestion() {
             queryClient.invalidateQueries({ queryKey: ["question", variables.questionId] });
         },
         onSettled: (data, error, variables) => {
-            // Always refetch vote status to ensure consistency
+            // Always refetch vote status and questions to ensure consistency
             queryClient.invalidateQueries({
-                queryKey: ["question-vote", variables.questionId, variables.userId]
+                queryKey: ["question-vote", variables.questionId, variables.userId],
             });
-            // Invalidate related queries
             queryClient.invalidateQueries({ queryKey: ["questions"] });
             queryClient.invalidateQueries({ queryKey: ["question", variables.questionId] });
         },
@@ -204,7 +212,15 @@ export function useDownvoteQuestion() {
 
             return { previousVote };
         },
+        onSuccess: (data, variables) => {
+            if (variables.hasdownVoted) {
+                toast.success("Vote removed");
+            } else {
+                toast.success("Question downvoted");
+            }
+        },
         onError: (err, variables, context) => {
+            toast.error("An error occurred while downvoting.");
             // Rollback on error
             if (context?.previousVote !== undefined) {
                 queryClient.setQueryData(
@@ -217,11 +233,10 @@ export function useDownvoteQuestion() {
             queryClient.invalidateQueries({ queryKey: ["question", variables.questionId] });
         },
         onSettled: (data, error, variables) => {
-            // Always refetch vote status to ensure consistency
+            // Always refetch vote status and questions to ensure consistency
             queryClient.invalidateQueries({
-                queryKey: ["question-vote", variables.questionId, variables.userId]
+                queryKey: ["question-vote", variables.questionId, variables.userId],
             });
-            // Invalidate related queries
             queryClient.invalidateQueries({ queryKey: ["questions"] });
             queryClient.invalidateQueries({ queryKey: ["question", variables.questionId] });
         },
@@ -254,8 +269,12 @@ export function useCreateQuestion() {
     return useMutation({
         mutationFn: (params: CreateQuestionParams) => createQuestion(params),
         onSuccess: () => {
+            toast.success("Question created successfully");
             // Invalidate questions list to show new question
             queryClient.invalidateQueries({ queryKey: ["questions"] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Failed to create question");
         },
     });
 }
@@ -266,9 +285,13 @@ export function useEditQuestion() {
     return useMutation({
         mutationFn: (params: EditQuestionParams) => editQuestion(params),
         onSuccess: (data, variables) => {
+            toast.success("Question edited successfully");
             // Invalidate specific question and questions list
             queryClient.invalidateQueries({ queryKey: ["question", variables.questionId] });
             queryClient.invalidateQueries({ queryKey: ["questions"] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Failed to edit question");
         },
     });
 }
@@ -279,9 +302,13 @@ export function useDeleteQuestion() {
     return useMutation({
         mutationFn: (params: DeleteQuestionParams) => deleteQuestion(params),
         onSuccess: (data, variables) => {
+            toast.success("Question deleted successfully");
             // Remove question from cache and invalidate lists
             queryClient.removeQueries({ queryKey: ["question", variables.questionId] });
             queryClient.invalidateQueries({ queryKey: ["questions"] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Failed to delete question");
         },
     });
 }

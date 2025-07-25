@@ -53,6 +53,7 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
     }
 
     const { tagTitle, questions, isNext } = result;
+    console.log(questions);
 
     return (
         <div className="mt-10 px-6 sm:px-12">
@@ -78,6 +79,14 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
                                 name: question.author?.name || "Unknown User",
                                 picture: question.author?.picture || "/assets/icons/avatar.svg",
                                 leetcodeProfile: question.author?.leetcodeProfile || "",
+                            }}
+                            loop={{
+                                id: question.loop?.id || question.loopId || 0,
+                                name: question.loop?.name || "No Community",
+                                slug: question.loop?.slug || "",
+                                description: question.loop?.description || "",
+                                picture: question.loop?.picture || "",
+                                createdOn: question.loop?.createdOn || new Date(),
                             }}
                             upvotes={question.upvoteCount}
                             downvotes={question.downvoteCount}

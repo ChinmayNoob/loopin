@@ -5,14 +5,14 @@ import * as dotenv from "dotenv";
 // dotenv_config_path parameter that's passed to Node.js
 dotenv.config();
 
-if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL not found in environment');
+if (!process.env.DATABASE_URL_DEV) throw new Error('DATABASE_URL_DEV not found in environment');
 
 export default {
     schema: './db/schema.ts',
     out: './db/migrations',
     dialect: 'postgresql',
     dbCredentials: {
-        url: process.env.DATABASE_URL,
+        url: process.env.DATABASE_URL_DEV,
     },
     strict: true,
 } satisfies Config;

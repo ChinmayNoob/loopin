@@ -1,8 +1,10 @@
 
 import { BADGE_CRITERIA } from "@/constants";
+import { IconType } from 'react-icons';
 
 export interface SidebarLink {
-    imgURL: string;
+    imgURL?: string;
+    icon?: IconType;
     route: string;
     label: string;
     classname: string;
@@ -66,4 +68,11 @@ export interface IBadgeParams {
 }
 
 export type BadgeCriteriaType = keyof typeof BADGE_CRITERIA;
+
+export interface VoteStatus {
+    questionId?: number;
+    answerId?: number;
+    type?: 'upvote' | 'downvote';
+    hasVote: boolean;
+}
 

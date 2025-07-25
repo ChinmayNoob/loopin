@@ -73,13 +73,6 @@ const VoteButtons = ({ questionId, totalVotes }: VoteButtonsProps) => {
                 }
 
                 await upvoteMutation.mutateAsync(voteParams);
-
-                // Success messages
-                if (hasUpvoted) {
-                    toast.success("Vote removed");
-                } else {
-                    toast.success("Question upvoted!");
-                }
             } else {
                 // Optimistic update for UI responsiveness
                 if (hasDownvoted) {
@@ -89,17 +82,9 @@ const VoteButtons = ({ questionId, totalVotes }: VoteButtonsProps) => {
                 }
 
                 await downvoteMutation.mutateAsync(voteParams);
-
-                // Success messages
-                if (hasDownvoted) {
-                    toast.success("Vote removed");
-                } else {
-                    toast.success("Question downvoted");
-                }
             }
         } catch (error) {
             console.error("Error voting:", error);
-            toast.error("Error voting. Please try again.");
             // Reset optimistic update on error
             setCurrentVotes(totalVotes);
         }

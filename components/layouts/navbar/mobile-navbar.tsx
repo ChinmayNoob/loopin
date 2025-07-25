@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { mobileSidebarLinks } from "@/constants";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { PiScribbleLoopBold } from "react-icons/pi";
+import { MdLogout } from "react-icons/md";
 
 interface UserParams {
   user?: {
@@ -29,15 +31,15 @@ const NavContent = () => {
 
   return (
     <section className="light-border mt-5 flex flex-col gap-3 border-t pt-4">
-      <h2 className="text-dark300_light900 base-bold">Discover</h2>
-      {mobileSidebarLinks.map((item) => {
+      <h2 className="font-bold">Discover</h2>
+      {mobileSidebarLinks.map((item, index) => {
         const isActive =
           (pathname.includes(item.route) && item.route.length > 1) ||
           pathname === item.route;
         // to set a link to Active. It is true when the path name includes value of item route AND when value of route must have some data
 
         return (
-          <SheetClose asChild key={item.route}>
+          <SheetClose asChild key={`${item.route}-${index}`}>
             <Link
               href={item.route}
               className={`${isActive
@@ -46,13 +48,20 @@ const NavContent = () => {
                 } flex items-center justify-start gap-4 bg-transparent px-4 py-1.5`}
             >
               {/* checks if the link is active using isActive if yes apply needed classes */}
-              <Image
-                src={item.imgURL}
-                width={30}
-                height={30}
-                alt={item.label}
-                className={`${isActive ? "dark:invert" : "invert-colors"}`}
-              />
+              {item.icon ? (
+                <item.icon
+                  size={30}
+                  className={`${isActive ? "text-light900_dark100" : "text-dark300_light900"}`}
+                />
+              ) : (
+                <Image
+                  src={item.imgURL!}
+                  width={30}
+                  height={30}
+                  alt={item.label}
+                  className={`${isActive ? "dark:invert" : "invert-colors"}`}
+                />
+              )}
               <p className={`${isActive ? "base-bold" : "base-medium"}`}>
                 {item.label}
               </p>
@@ -92,19 +101,16 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
         className="border-none font-spaceGrotesk"
       >
         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-        <Link href="/" className="flex items-center gap-1">
-          {/* shows logo in mobile nav */}
-          <Image
-            src="/assets/logo.svg"
-            width={28}
-            height={28}
-            alt="Loopin"
-            className="size-9 invert-0 dark:invert"
-          />
-          <p className="h2-bold font-spaceGrotesk ">
-            Loopin
-          </p>
-        </Link>
+        <div className="mt-2 ml-2">
+
+          <Link href="/" className="flex items-center gap-1">
+            {/* shows logo in mobile nav */}
+            <PiScribbleLoopBold size={28} />
+            <p className="font-bold font-spaceGrotesk text-3xl ">
+              Loopin
+            </p>
+          </Link>
+        </div>
 
         {/* Only render Clerk-dependent content after mounting */}
         {mounted && (
@@ -124,7 +130,7 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
                       />
                     </div>
                     <div className="flex flex-col">
-                      <p className="base-bold">{user?.name}</p>
+                      <p className="font-bold">{user?.name}</p>
                       <p className="dark:text-zinc-600">@{user?.username}</p>
                     </div>
                   </div>
@@ -133,7 +139,7 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
             </SignedIn>
 
             <div className="flex  flex-col justify-between gap-8 pb-10 ">
-              <div className="">
+              <div className="ml-1">
                 <SheetClose asChild className="">
                   {/* nav links */}
                   <NavContent />
@@ -142,15 +148,15 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
                 <SignedIn>
                   {tags && (
                     <div className=" light-border border-t pt-5">
-                      <h2 className="base-bold">Tags</h2>
+                      <h2 className="font-bold">Tags</h2>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {tags?.map((tag: { _id: string; name: string }) => (
-                          <SheetClose asChild key={tag._id}>
+                        {tags?.map((tag: { _id: string; name: string }, index: number) => (
+                          <SheetClose asChild key={`${tag._id}-${index}`}>
                             <Link
                               href={`/tags/${tag._id}`}
                               className="flex justify-between gap-2"
                             >
-                              <Badge className="rounded-md border border-light-3 bg-transparent  px-4 py-2 uppercase  dark:border-dark-4">
+                              <Badge className="rounded-md dark:text-white border border-light-3 bg-transparent  px-4 py-2 uppercase  dark:border-dark-4">
                                 {tag.name}
                               </Badge>
                             </Link>
@@ -165,13 +171,8 @@ const MobileNav = ({ user, popularTags }: UserParams) => {
               <SignedIn>
                 <SignOutButton>
                   <Button className="small-medium primary-gradient flex min-h-[41px] w-full items-center justify-center gap-2 rounded-lg px-4 py-3 shadow-none ">
-                    <Image
-                      src="/assets/icons/logout.svg"
-                      alt="login"
-                      width={26}
-                      height={26}
-                      className="invert dark:invert-0 lg:hidden "
-                    />
+                    <MdLogout size={20} />
+
                     <span className="text-light-1 dark:text-dark-1 ">Sign-out</span>
                   </Button>
                 </SignOutButton>

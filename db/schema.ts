@@ -41,6 +41,7 @@ export const questions = pgTable(
         content: t.text().notNull(),
         views: t.integer().default(0),
         authorId: t.integer("author_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+        loopId: t.integer("loop_id").references(() => loops.id, { onDelete: "cascade" }),
         createdAt: t.timestamp("created_at").defaultNow().notNull(),
     }
 );
@@ -112,3 +113,25 @@ export const interactions = pgTable(
         createdAt: t.timestamp("created_at").defaultNow().notNull(),
     }
 );
+
+export const loops = pgTable(
+    "loops",
+    {
+        id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+        name: t.varchar().notNull().unique(),
+        slug: t.varchar().notNull().unique(),
+        description: t.text().notNull(),
+        picture: t.varchar().notNull(),
+        createdOn: t.timestamp("created_on").defaultNow().notNull(),
+    }
+)
+
+export const loopMembers = pgTable(
+    "loop_members",
+    {
+        loopId: t.integer("loop_id").references(() => loops.id, { onDelete: "cascade" }).notNull(),
+        userId: t.integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+        role: t.varchar().default("member"),
+        joinedAt: t.timestamp("joined_at").defaultNow().notNull(),
+    }
+)

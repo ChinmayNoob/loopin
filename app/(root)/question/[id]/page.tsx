@@ -14,12 +14,14 @@ import { useQuestionById } from "@/lib/axios/questions";
 import { useCurrentUser } from "@/lib/axios/users";
 import { FaArrowLeft } from "react-icons/fa";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 
 interface PageParams {
     id: string;
 }
 
 const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
+    const router = useRouter();
     const unwrappedParams = use(params);
     console.log(unwrappedParams);
     const { data: questionInfo, isLoading, error } = useQuestionById({ questionId: parseInt(unwrappedParams.id) });
@@ -71,12 +73,14 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
         <div className="w-full px-6 sm:px-12 py-8">
             {/* Back Button */}
             <div className="mb-6">
-                <Link href="/">
-                    <Button variant="outline" className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 px-4 py-2 rounded-lg transition-colors">
-                        <FaArrowLeft className="w-4 h-4" />
-                        Back to Questions
-                    </Button>
-                </Link>
+                <Button
+                    variant="outline"
+                    className="text-lg border border-gray-300 dark:border-gray-800 text-gray-700 dark:text-gray-300 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-neutral-800 flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                    onClick={() => router.back()}
+                >
+                    <FaArrowLeft className="w-4 h-4" />
+                    Back
+                </Button>
             </div>
 
             {/* Question Header */}

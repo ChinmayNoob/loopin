@@ -1,12 +1,13 @@
 'use client';
 
 import { SignedIn, UserButton } from "@clerk/nextjs";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import Theme from "./theme-toggle";
 import MobileNav from "./mobile-navbar";
 import { useCurrentUser } from "@/lib/axios/users";
+import { PiScribbleLoopBold } from "react-icons/pi";
+
 
 const Navbar = () => {
     const [mounted, setMounted] = useState(false);
@@ -40,13 +41,7 @@ const Navbar = () => {
             <nav className="flex items-center justify-between fixed left-1/2 top-2 z-50 w-[95%] max-w-6xl -translate-x-1/2 gap-5 rounded-xl bg-zinc-300/40 px-4 py-2 shadow-light-300 backdrop-blur-md backdrop-saturate-150 dark:bg-dark-4/70 dark:shadow-none max-sm:w-[98%] max-sm:gap-1 sm:px-7">
                 {/* Logo Section */}
                 <Link href="/" className="flex items-center gap-1 min-w-11 sm:min-w-32">
-                    <Image
-                        src="/assets/logo.svg"
-                        width={28}
-                        height={28}
-                        alt="Loopin"
-                        className="size-9 invert-0 dark:invert"
-                    />
+                    <PiScribbleLoopBold size={28} />
                     <p className="font-spaceGrotesk font-bold text-2xl max-sm:hidden">
                         Loopin
                     </p>
@@ -64,13 +59,8 @@ const Navbar = () => {
         <nav className="flex items-center justify-between fixed left-1/2 top-2 z-50 w-[95%] max-w-6xl -translate-x-1/2 gap-5 rounded-xl bg-zinc-300/40 px-4 py-2 shadow-light-300 backdrop-blur-md backdrop-saturate-150 dark:bg-dark-4/70 dark:shadow-none max-sm:w-[98%] max-sm:gap-1 sm:px-7">
             {/* Logo Section */}
             <Link href="/" className="flex items-center gap-1 min-w-11 sm:min-w-32">
-                <Image
-                    src="/assets/logo.svg"
-                    width={28}
-                    height={28}
-                    alt="Loopin"
-                    className="size-9 invert-0 dark:invert"
-                />
+                <PiScribbleLoopBold size={28} />
+
                 <p className="font-spaceGrotesk font-bold text-2xl max-sm:hidden">
                     Loopin
                 </p>

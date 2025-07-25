@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { tags, users, questions, questionTags, interactions, votes, answers } from "@/db/schema";
+import { tags, users, questions, questionTags, interactions, votes, answers, loops } from "@/db/schema";
 import { asc, desc, eq, ilike, sql, and, inArray } from "drizzle-orm";
 import {
     GetAllTagsParams,
@@ -152,6 +152,7 @@ export async function getQuestionsByTagId(params: GetQuestionsByTagIdParams) {
                 content: questions.content,
                 views: questions.views,
                 authorId: questions.authorId,
+                loopId: questions.loopId,
                 createdAt: questions.createdAt,
                 author: {
                     id: users.id,
@@ -159,6 +160,14 @@ export async function getQuestionsByTagId(params: GetQuestionsByTagIdParams) {
                     name: users.name,
                     picture: users.picture,
                     leetcodeProfile: users.leetcodeProfile,
+                },
+                loop: {
+                    id: loops.id,
+                    name: loops.name,
+                    slug: loops.slug,
+                    description: loops.description,
+                    picture: loops.picture,
+                    createdOn: loops.createdOn,
                 },
                 tags: sql<Array<{ id: number; name: string; description: string }>>`(
                     SELECT COALESCE(
@@ -199,6 +208,7 @@ export async function getQuestionsByTagId(params: GetQuestionsByTagIdParams) {
             .from(questions)
             .innerJoin(questionTags, eq(questions.id, questionTags.questionId))
             .leftJoin(users, eq(questions.authorId, users.id))
+            .leftJoin(loops, eq(questions.loopId, loops.id))
             .where(and(...conditions))
             .orderBy(desc(questions.createdAt))
             .limit(pageSize + 1)

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserInfo, getUserByClerkId, updateUser, getSavedQuestions, getUserQuestions, getUserAnswers, toggleSaveQuestion, checkIsQuestionSaved, getAllUsers } from "../actions/users";
 import { useAuth } from "@clerk/nextjs";
 import { GetSavedQuestionsParams, GetUserStatsParams, ToggleSaveQuestionParams, GetAllUsersParams } from "../actions/shared.types";
+import { toast } from "sonner";
 
 export function useUserInfo(userId: string) {
     return useQuery({
@@ -48,6 +49,7 @@ export function useUpdateUser() {
         onSuccess: (_, variables) => {
             // Invalidate all user-related queries
             queryClient.invalidateQueries({ queryKey: ["user"] });
+            toast.success("Profile updated successfully!");
             // Specifically invalidate the clerk user query
             queryClient.invalidateQueries({ queryKey: ["user", "clerk", variables.clerkId] });
         },
