@@ -159,7 +159,7 @@ const CreateAnswer = ({ questionId }: CreateAnswerProps) => {
                     <div className="flex justify-end">
                         <Button
                             type="submit"
-                            className="primary-gradient text-light900_dark100 px-8 py-2"
+                            className="text-white dark:text-black px-8 py-2"
                             disabled={createAnswerMutation.isPending}
                         >
                             {createAnswerMutation.isPending ? "Submitting..." : "Submit Answer"}

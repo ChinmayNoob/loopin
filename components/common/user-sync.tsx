@@ -15,8 +15,11 @@ export default function UserSync() {
             // Automatically create or get user from database when Clerk user is loaded
             createOrGetUserFromClerk()
                 .then((result) => {
-                    if (result.success) {
-                        console.log("User synced successfully:", result.user?.username);
+                    if (result.success && "user" in result) {
+                        console.log(
+                            "User synced successfully:",
+                            result.user?.username
+                        );
                     } else {
                         console.error("Failed to sync user:", result.error);
                     }

@@ -14,9 +14,9 @@ const RightSideBar = () => {
 
     return (
         <section className="sticky right-0 top-0 flex h-screen w-[310px]  flex-col overflow-y-auto p-6 pt-36 max-xl:hidden">
-            <div className="rounded-lg border px-3 py-4 bg-zinc-200 dark:bg-[#4F46E8]">
+            <div className="rounded-lg border px-3 py-4 bg-zinc-200 dark:bg-zinc-800">
                 <h3 className="text-2xl font-bold text-center text-black dark:text-white">Top questions</h3>
-                <Separator className="my-4 bg-black" />
+                <Separator className="my-4 bg-black dark:bg-white" />
                 <div className="mt-7 flex w-full flex-col gap-2">
                     {isLoading ? (
                         <div className="text-sm">Loading top questions...</div>
@@ -42,9 +42,9 @@ const RightSideBar = () => {
             </div>
             <Separator className="my-4 bg-black dark:bg-white" />
 
-            <div className="rounded-lg px-3 py-4 bg-zinc-200 dark:bg-[#4F46E8]">
-                <h3 className="text-2xl font-bold text-center text-black dark:text-black">Popular Tags</h3>
-                <Separator className="my-4 bg-black" />
+            <div className="rounded-lg px-3 py-4 bg-zinc-200 dark:bg-zinc-800">
+                <h3 className="text-2xl font-bold text-center text-black dark:text-white">Popular Tags</h3>
+                <Separator className="my-4 bg-black dark:bg-white" />
                 <div className="mt-4 flex flex-wrap gap-2">
                     {tagsLoading ? (
                         <div className="text-sm">Loading popular tags...</div>
