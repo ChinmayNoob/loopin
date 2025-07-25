@@ -85,81 +85,98 @@ const LoopDetailPage = ({ params, searchParams }: LoopDetailPageProps) => {
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
             {/* Loop Header */}
-            <div className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700 p-6 mb-8">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                        <div className="w-20 h-20 rounded-lg bg-black dark:bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {loopInfo.picture ? (
-                                <Image
-                                    src={loopInfo.picture}
-                                    alt={loopInfo.name}
-                                    width={80}
-                                    height={80}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-white dark:text-black font-bold text-3xl">
-                                    {loopInfo.name.charAt(0).toUpperCase()}
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex-1">
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                                {loopInfo.name}
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">
-                                {loopInfo.description}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                                <div className="flex items-center space-x-2">
-                                    <Users size={16} />
-                                    <span>{loopInfo.memberCount} members</span>
+            <div className="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8 overflow-hidden">
+                <div className="p-8 lg:p-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        {/* Left Section - Avatar and Basic Info */}
+                        <div className="lg:col-span-8">
+                            <div className="flex flex-col sm:flex-row items-start gap-6">
+                                {/* Avatar */}
+                                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-black dark:bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+                                    {loopInfo.picture ? (
+                                        <Image
+                                            src={loopInfo.picture}
+                                            alt={loopInfo.name}
+                                            width={112}
+                                            height={112}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <span className="text-white dark:text-black font-bold text-4xl sm:text-5xl">
+                                            {loopInfo.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <MessageCircle size={16} />
-                                    <span>{loopInfo.questionCount} questions</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Calendar size={16} />
-                                    <span>Created {getTimestamp(loopInfo.createdAt)}</span>
+
+                                {/* Main Info */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="mb-6">
+                                        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight">
+                                            {loopInfo.name}
+                                        </h1>
+                                        <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed max-w-2xl">
+                                            {loopInfo.description}
+                                        </p>
+                                    </div>
+
+                                    {/* Stats */}
+                                    <div className="flex flex-wrap gap-3">
+                                        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30">
+                                            <Users size={14} className="text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{loopInfo.memberCount} members</span>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30">
+                                            <MessageCircle size={14} className="text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{loopInfo.questionCount} questions</span>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30">
+                                            <Calendar size={14} className="text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Created {getTimestamp(loopInfo.createdAt)}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        {currentUser?.success && currentUser.user && (
-                            <>
-                                <JoinLeaveButton
-                                    loopId={loopId}
-                                    userId={currentUser.user.id}
-                                    isMember={isMember}
-                                />
-                                {isMember && (
+                        {/* Right Section - Action Buttons */}
+                        <div className="lg:col-span-4">
+                            <div className="flex flex-col items-stretch lg:items-end gap-3 lg:min-w-[200px]">
+                                {currentUser?.success && currentUser.user && (
                                     <>
-                                        <Link href={`/loops/${loopId}/ask-question`}>
-                                            <Button className="flex items-center gap-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black h-10 px-4">
-                                                <Plus size={16} />
-                                                Ask Question
-                                            </Button>
-                                        </Link>
-                                        <Link href={`/loops/${loopId}/members`}>
-                                            <Button variant="outline" className="flex items-center gap-2 h-10 px-4">
-                                                <Users size={16} />
-                                                Members
-                                            </Button>
-                                        </Link>
+                                        <JoinLeaveButton
+                                            loopId={loopId}
+                                            userId={currentUser.user.id}
+                                            isMember={isMember}
+                                        />
+                                        {isMember && (
+                                            <div className="flex flex-col gap-3">
+                                                <Link href={`/loops/${loopId}/ask-question`}>
+                                                    <Button className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black h-11 px-6 min-w-[160px]">
+                                                        <Plus size={16} />
+                                                        Ask Question
+                                                    </Button>
+                                                </Link>
+                                                <Link href={`/loops/${loopId}/members`}>
+                                                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-11 px-6 min-w-[160px]">
+                                                        <Users size={16} />
+                                                        Members
+                                                    </Button>
+                                                </Link>
+                                            </div>
+                                        )}
                                     </>
                                 )}
-                            </>
-                        )}
-                        {!currentUser?.success && (
-                            <Link href="/sign-in">
-                                <Button variant="outline" className="h-10 px-4">
-                                    Sign in to join
-                                </Button>
-                            </Link>
-                        )}
+                                {!currentUser?.success && (
+                                    <Link href="/sign-in">
+                                        <Button variant="outline" className="w-full h-11 px-6 min-w-[160px]">
+                                            Sign in to join
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

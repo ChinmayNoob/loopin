@@ -195,13 +195,13 @@ const LoopCard = ({ loop }: LoopCardProps) => {
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center">
                             <Users size={14} />
-                            <span>{loop.memberCount} members</span>
+                            <span>{loop.memberCount}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                             <MessageCircle size={14} />
-                            <span>{loop.questionCount} questions</span>
+                            <span>{loop.questionCount}</span>
                         </div>
                     </div>
 
