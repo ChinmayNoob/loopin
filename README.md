@@ -168,7 +168,9 @@ loopin/
 └── types/                       # TypeScript type definitions
 ```
 
-## 🗄️ Database Schema
+## ��️ Database Schema
+
+![Database Schema](./public/schema.png)
 
 The application uses a PostgreSQL database with the following main entities:
 

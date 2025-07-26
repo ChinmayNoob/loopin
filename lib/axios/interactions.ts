@@ -12,7 +12,7 @@ interface VoteCheckParams {
 interface BatchVoteCheckParams {
     questionIds?: number[];
     answerIds?: number[];
-    userId: number;
+    userId: number; 
 }
 
 interface VoteStatus {
