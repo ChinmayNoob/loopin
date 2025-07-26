@@ -12,21 +12,13 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Search, MessageCircle } from "lucide-react";
-import { QuestionWithAuthor } from "@/lib/actions/shared.types";
 import QuestionCard from "@/components/cards/question-card";
 import { useBatchVoteStatus } from "@/lib/axios/interactions";
 import { useUser } from "@clerk/nextjs";
 import { getUserByClerkId } from "@/lib/actions/users";
+import { LoopQuestionsListProps } from "@/types";
 
-interface LoopQuestionsListProps {
-    questions: QuestionWithAuthor[];
-    isNext: boolean;
-    loopId: number;
-    searchQuery: string;
-    filter: "newest" | "frequent" | "unanswered";
-    page: number;
-    userClerkId: string | null;
-}
+
 
 const LoopQuestionsList = ({
     questions,

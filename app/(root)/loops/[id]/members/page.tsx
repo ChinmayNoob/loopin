@@ -96,7 +96,7 @@ const LoopMembers = ({ params }: { params: Promise<PageParams> }) => {
 
     const handleFilterChange = (newFilter: string) => {
         setFilter(newFilter);
-        setCurrentPage(1); 
+        setCurrentPage(1);
     };
 
     const handlePageChange = (page: number) => {
@@ -113,7 +113,9 @@ const LoopMembers = ({ params }: { params: Promise<PageParams> }) => {
                     <h1 className="h1-bold text-dark100_light900">Loop Members</h1>
                 </div>
                 <div className="mt-5 flex items-center justify-center">
-                    <p className="paragraph-regular text-dark200_light800">Loading members...</p>
+                    <div className="flex items-center justify-center min-h-[400px]">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    </div>
                 </div>
             </div>
         );

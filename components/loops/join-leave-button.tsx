@@ -6,12 +6,7 @@ import { UserPlus, UserMinus, Loader } from "lucide-react";
 import { useJoinLoop, useLeaveLoop } from "@/lib/axios/loops";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-
-interface JoinLeaveButtonProps {
-    loopId: number;
-    userId: number;
-    isMember: boolean;
-}
+import { JoinLeaveButtonProps } from "@/types";
 
 const JoinLeaveButton = ({ loopId, userId, isMember }: JoinLeaveButtonProps) => {
     const pathname = usePathname();

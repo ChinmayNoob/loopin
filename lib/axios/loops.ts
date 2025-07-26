@@ -12,7 +12,7 @@ import {
     getLoopMembers,
     getPopularLoops,
     askQuestionInLoop,
-    isUserMemberOfLoop, // Add this import
+    isUserMemberOfLoop,
 } from "@/lib/actions/loops";
 import {
     CreateLoopParams,

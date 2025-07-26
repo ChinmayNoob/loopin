@@ -32,7 +32,9 @@ const Community = () => {
             <div className="px-6 sm:px-12">
                 <h1 className="h1-bold text-dark100_light900 mt-5">Community</h1>
                 <div className="mt-5 flex items-center justify-center">
-                    <p className="paragraph-regular text-dark200_light800">Loading users...</p>
+                    <div className="flex items-center justify-center min-h-[400px]">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    </div>
                 </div>
             </div>
         );

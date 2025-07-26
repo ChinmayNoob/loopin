@@ -1,5 +1,6 @@
 
 import { BADGE_CRITERIA } from "@/constants";
+import { LoopWithStats, QuestionWithAuthor } from "@/lib/actions/shared.types";
 import { IconType } from 'react-icons';
 
 export interface SidebarLink {
@@ -76,3 +77,50 @@ export interface VoteStatus {
     hasVote: boolean;
 }
 
+
+export interface ProfileProps {
+    clerkId: string;
+    user: string;
+}
+export interface ProfileLinkProps {
+    imgUrl: string;
+    title: string;
+    href?: string;
+}
+
+export interface ProfileTabsProps {
+    clerkId: string;
+    isOwnProfile: boolean;
+}
+
+
+//loops types
+
+
+export interface JoinLeaveButtonProps {
+    loopId: number;
+    userId: number;
+    isMember: boolean;
+}
+
+export interface LoopsListProps {
+    loops: LoopWithStats[];
+    isNext: boolean;
+    searchQuery: string;
+    filter: "newest" | "popular" | "active";
+    page: number;
+}
+
+export interface LoopCardProps {
+    loop: LoopWithStats;
+}
+
+export interface LoopQuestionsListProps {
+    questions: QuestionWithAuthor[];
+    isNext: boolean;
+    loopId: number;
+    searchQuery: string;
+    filter: "newest" | "frequent" | "unanswered";
+    page: number;
+    userClerkId: string | null;
+}

@@ -44,10 +44,8 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
 
     if (isLoading) {
         return (
-            <div className="mt-8 flex w-full flex-col">
-                <div className="text-center">
-                    <p className="body-regular text-dark500_light700">Loading questions...</p>
-                </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
         );
     }

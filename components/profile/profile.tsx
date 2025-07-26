@@ -19,11 +19,9 @@ import { Textarea } from "../ui/textarea";
 import { ProfileSchema } from "@/lib/schema-types";
 import { Check, Loader } from "lucide-react";
 import { useUpdateUser } from "@/lib/axios/users";
+import { ProfileProps } from "@/types";
 
-interface ProfileProps {
-    clerkId: string;
-    user: string;
-}
+
 
 const Profile = ({ clerkId, user }: ProfileProps) => {
     const userInfo = JSON.parse(user);

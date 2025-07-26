@@ -13,18 +13,12 @@ import {
 } from "@/components/ui/select";
 import { Search, Users, MessageCircle, ChevronRight } from "lucide-react";
 import { IoFilter } from "react-icons/io5";
-import { LoopWithStats } from "@/lib/actions/shared.types";
 import Image from "next/image";
 import Link from "next/link";
 import { getTimestamp } from "@/lib/utils";
+import { LoopCardProps, LoopsListProps } from "@/types";
 
-interface LoopsListProps {
-    loops: LoopWithStats[];
-    isNext: boolean;
-    searchQuery: string;
-    filter: "newest" | "popular" | "active";
-    page: number;
-}
+
 
 const LoopsList = ({
     loops,
@@ -156,9 +150,7 @@ const LoopsList = ({
     );
 };
 
-interface LoopCardProps {
-    loop: LoopWithStats;
-}
+
 
 const LoopCard = ({ loop }: LoopCardProps) => {
     return (

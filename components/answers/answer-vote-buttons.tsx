@@ -71,7 +71,7 @@ const AnswerVoteButtons = ({ answerId, totalVotes, voteStatus: preloadedVoteStat
     const hasUpvoted = !!(voteStatus?.hasVote && voteStatus?.type === 'upvote');
     const hasDownvoted = !!(voteStatus?.hasVote && voteStatus?.type === 'downvote');
 
-    const handleVote = async (type: 'upvote' | 'downvote') => {
+    const handleVote = async (type: 'upvote' | 'downvote') => { 
         if (!user || !userId) {
             toast.error("Please sign in to vote");
             return;
@@ -89,7 +89,7 @@ const AnswerVoteButtons = ({ answerId, totalVotes, voteStatus: preloadedVoteStat
                     hasdownVoted: hasDownvoted,
                     path: pathname,
                 });
-
+     
                 if (hasUpvoted) {
                     setCurrentVotes(prev => prev - 1);
                     updateAnswerVote(answerId, userId, null);

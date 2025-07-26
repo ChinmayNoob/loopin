@@ -8,11 +8,8 @@ import Link from "next/link";
 import { getTimestamp } from "@/lib/utils";
 import ParseHTML from "@/components/common/parse-html";
 import { useCurrentUser } from "@/lib/axios/users";
+import { ProfileTabsProps } from '@/types';
 
-interface ProfileTabsProps {
-    clerkId: string;
-    isOwnProfile: boolean;
-}
 
 const ProfileTabs = ({ clerkId, isOwnProfile }: ProfileTabsProps) => {
     const [questionsPage, setQuestionsPage] = useState(1);

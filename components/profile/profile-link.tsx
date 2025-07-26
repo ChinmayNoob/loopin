@@ -1,11 +1,8 @@
+import { ProfileLinkProps } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 
-interface ProfileLinkProps {
-    imgUrl: string;
-    title: string;
-    href?: string;
-}
+
 
 const ProfileLink = ({ imgUrl, title, href }: ProfileLinkProps) => {
     return (

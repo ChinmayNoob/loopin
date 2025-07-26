@@ -39,8 +39,8 @@ const CollectionPage = () => {
                     <h1 className="h1-bold text-dark100_light900">Saved Questions</h1>
                 </div>
                 <div className="mt-8 flex w-full flex-col">
-                    <div className="text-center">
-                        <p className="body-regular text-dark500_light700">Loading saved questions...</p>
+                    <div className="flex items-center justify-center min-h-[400px]">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                     </div>
                 </div>
             </div>
