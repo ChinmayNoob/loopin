@@ -81,7 +81,7 @@ A modern Q&A platform with community-driven loops, built with Next.js and TypeSc
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/loopin.git
+   git clone https://github.com/ChinmayNoob/loopin.git
    cd loopin
    ```
 
