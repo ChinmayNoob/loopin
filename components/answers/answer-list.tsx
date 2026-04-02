@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { AnswerFilters } from "@/constants/filters";
-import { useAnswers } from "@/lib/axios/answers";
+import { useInfiniteAnswers } from "@/lib/axios/answers";
+import InfiniteScrollTrigger from "@/components/common/infinite-scroll-trigger";
 import { useCurrentUser } from "@/lib/axios/users";
 import Link from "next/link";
 import Image from "next/image";
 import { getTimestamp } from "@/lib/utils";
 import ParseHTML from "@/components/common/parse-html";
-import { Button } from "@/components/ui/button";
 import AnswerVoteButtons from "./answer-vote-buttons";
 import DeleteAnswer from "./delete-answer";
 import {
@@ -23,30 +23,30 @@ import {
 interface AnswerListProps {
     questionId: number;
     totalAnswers: number;
+    /** From getQuestionById: platform or loop mod can delete others' answers. */
+    canModerateAnswers?: boolean;
 }
 
-const AnswerList = ({ questionId, totalAnswers }: AnswerListProps) => {
-    const [currentPage, setCurrentPage] = useState(1);
+const AnswerList = ({ questionId, totalAnswers, canModerateAnswers = false }: AnswerListProps) => {
     const [currentFilter, setCurrentFilter] = useState("recent");
     const { data: currentUser } = useCurrentUser();
 
-    const { data: answersData, isLoading: loading } = useAnswers({
+    const {
+        data: answersData,
+        isLoading: loading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteAnswers({
         questionId,
-        page: currentPage,
         sortBy: currentFilter,
         pageSize: 10
     });
 
-    const answers = answersData?.answers || [];
-    const isNext = answersData?.isNext || false;
+    const answers = answersData?.pages.flatMap((p) => p.answers) ?? [];
 
     const handleFilterChange = (filter: string) => {
         setCurrentFilter(filter);
-        setCurrentPage(1);
-    };
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
     };
 
     if (loading) {
@@ -121,12 +121,12 @@ const AnswerList = ({ questionId, totalAnswers }: AnswerListProps) => {
                                     totalVotes={answer.totalVotes}
                                 />
 
-                                {/* Delete Button - Only show if current user is the answer author */}
                                 {currentUser?.success &&
                                     currentUser.user &&
-                                    answer.authorId === currentUser.user.id && (
+                                    (answer.authorId === currentUser.user.id || canModerateAnswers) && (
                                         <DeleteAnswer
                                             answerId={answer.id}
+                                            userId={currentUser.user.id}
                                         />
                                     )}
                             </div>
@@ -143,31 +143,12 @@ const AnswerList = ({ questionId, totalAnswers }: AnswerListProps) => {
                 ))}
             </div>
 
-            {/* Pagination */}
-            {(currentPage > 1 || isNext) && (
-                <div className="flex items-center justify-between mt-8">
-                    <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="border-[#cbcbcb] dark:border-[#212734] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F4F6F8] dark:hover:bg-[#151821]"
-                    >
-                        Previous
-                    </Button>
-
-                    <span className="text-sm text-[#5C5C7B] dark:text-[#858EAD]">
-                        Page {currentPage}
-                    </span>
-
-                    <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={!isNext}
-                        className="border-[#cbcbcb] dark:border-[#212734] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F4F6F8] dark:hover:bg-[#151821]"
-                    >
-                        Next
-                    </Button>
-                </div>
+            {(answers.length > 0 || hasNextPage) && (
+                <InfiniteScrollTrigger
+                    hasNextPage={!!hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    fetchNextPage={fetchNextPage}
+                />
             )}
 
             {/* No answers message */}

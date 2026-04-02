@@ -20,9 +20,10 @@ import { FaTrashAlt } from "react-icons/fa";
 
 interface DeleteAnswerProps {
     answerId: number;
+    userId: number;
 }
 
-const DeleteAnswer = ({ answerId }: DeleteAnswerProps) => {
+const DeleteAnswer = ({ answerId, userId }: DeleteAnswerProps) => {
     const pathname = usePathname();
     const deleteAnswerMutation = useDeleteAnswer();
 
@@ -30,6 +31,7 @@ const DeleteAnswer = ({ answerId }: DeleteAnswerProps) => {
         try {
             const result = await deleteAnswerMutation.mutateAsync({
                 answerId,
+                userId,
                 path: pathname,
             });
 

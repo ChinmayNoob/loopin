@@ -3,8 +3,9 @@
 import { use } from "react";
 import { useSearchParams } from "next/navigation";
 import QuestionCard from "@/components/cards/question-card";
-import Pagination from "@/components/common/pagination";
-import { useQuestionsByTagId } from "@/lib/axios/tags";
+import InfiniteScrollTrigger from "@/components/common/infinite-scroll-trigger";
+import { useInfiniteQuestionsByTagId } from "@/lib/axios/tags";
+import { useUser } from "@clerk/nextjs";
 
 interface PageParams {
     id: string;
@@ -13,23 +14,34 @@ interface PageParams {
 const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
     const unwrappedParams = use(params);
     const searchParams = useSearchParams();
+    const { user } = useUser();
 
-    const page = searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1;
     const searchQuery = searchParams.get("q") || undefined;
+    const tagId = parseInt(unwrappedParams.id, 10);
 
-    const { data: result, isLoading, error } = useQuestionsByTagId({
-        tagId: parseInt(unwrappedParams.id),
-        page,
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuestionsByTagId({
+        tagId,
         pageSize: 20,
         searchQuery,
     });
 
-    const handlePageChange = (newPage: number) => {
-        const url = new URL(window.location.href);
-        url.searchParams.set("page", newPage.toString());
-        window.history.pushState({}, "", url.toString());
-        window.location.reload();
-    };
+    const questions = data?.pages.flatMap((p) => p.questions) ?? [];
+    const tagTitle = data?.pages[0]?.tagTitle ?? "";
+
+    if (!Number.isFinite(tagId)) {
+        return (
+            <div className="mt-10 px-6 text-center">
+                <p className="text-red-500">Invalid tag.</p>
+            </div>
+        );
+    }
 
     if (isLoading) {
         return (
@@ -39,21 +51,24 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
         );
     }
 
-    if (error || !result) {
+    if (error) {
         return (
             <div className="flex items-center justify-center min-h-[400px] flex-col gap-4">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-[#000000] dark:text-[#FFFFFF] mb-2">Tag not found</h2>
+                    <h2 className="text-2xl font-bold text-[#000000] dark:text-[#FFFFFF] mb-2">
+                        Could not load tag
+                    </h2>
                     <p className="text-[#5C5C7B] dark:text-[#858EAD] mb-4">
-                        The tag you&apos;re looking for doesn&apos;t exist or has been removed.
+                        The tag may not exist, or there was a network error. Try again later.
                     </p>
                 </div>
             </div>
         );
     }
 
-    const { tagTitle, questions, isNext } = result;
-    console.log(questions);
+    if (!data?.pages.length) {
+        return null;
+    }
 
     return (
         <div className="mt-10 px-6 sm:px-12">
@@ -61,7 +76,6 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
                 {tagTitle}
             </h1>
 
-            {/* Card section */}
             <div className="mt-5 flex flex-col gap-6">
                 {questions.length > 0 ? (
                     questions.map((question) => (
@@ -94,6 +108,7 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
                             views={question.views || 0}
                             answerCount={question.answerCount}
                             createdAt={question.createdAt}
+                            clerkId={user?.id}
                         />
                     ))
                 ) : (
@@ -115,7 +130,7 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
                         </div>
                         <h2 className="h2-bold text-dark200_light900">Ummm.. no questions on this tag yet...</h2>
                         <p className="body-regular text-dark500_light700 mt-4">
-                            Be the first to break the silence! 🚀 Ask a Question and kickstart the discussion.
+                            Be the first to break the silence! Ask a Question and kickstart the discussion.
                         </p>
                         <a
                             href="/ask-question"
@@ -127,18 +142,15 @@ const TagDetails = ({ params }: { params: Promise<PageParams> }) => {
                 )}
             </div>
 
-            {/* Pagination */}
-            {(page > 1 || isNext) && (
-                <div className="mt-10">
-                    <Pagination
-                        pageNumber={page}
-                        isNext={isNext}
-                        onPageChange={handlePageChange}
-                    />
-                </div>
+            {(questions.length > 0 || hasNextPage) && (
+                <InfiniteScrollTrigger
+                    hasNextPage={!!hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    fetchNextPage={fetchNextPage}
+                />
             )}
         </div>
     );
 };
 
-export default TagDetails; 
+export default TagDetails;

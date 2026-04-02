@@ -15,6 +15,20 @@
       "when": 1750239084158,
       "tag": "0001_worthless_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775141780434,
+      "tag": "0002_schema_roles_and_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775141900000,
+      "tag": "0003_pg_trgm_questions",
+      "breakpoints": true
     }
   ]
 }

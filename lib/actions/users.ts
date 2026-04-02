@@ -2,7 +2,7 @@
 
 
 import { eq, desc, asc, and, or, ilike, sql } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs/server";
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { users, savedQuestions, questions, questionTags, tags, votes, answers } from "@/db/schema";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
@@ -10,6 +10,17 @@ import { GetSavedQuestionsParams, GetUserStatsParams, ToggleSaveQuestionParams, 
 
 export type NewUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+async function syncClerkUserMetadata(clerkId: string, userId: number, role: string) {
+    try {
+        const client = await clerkClient();
+        await client.users.updateUser(clerkId, {
+            publicMetadata: { userId, role },
+        });
+    } catch (error) {
+        console.error("Failed to sync Clerk publicMetadata:", error);
+    }
+}
 
 // Create a new user
 export async function createUser(userData: NewUser) {
@@ -109,7 +120,12 @@ export async function createOrGetUserFromClerk() {
         // Try to get existing user first
         const existingUser = await getUserByClerkId(clerkUser.id);
 
-        if (existingUser.success) {
+        if (existingUser.success && existingUser.user) {
+            await syncClerkUserMetadata(
+                clerkUser.id,
+                existingUser.user.id,
+                existingUser.user.role ?? "user"
+            );
             return existingUser;
         }
 
@@ -124,9 +140,14 @@ export async function createOrGetUserFromClerk() {
             location: null,
             leetcodeProfile: null,
             password: null, // Not needed for Clerk users
+            role: "user",
         };
 
-        return await createUser(newUserData);
+        const created = await createUser(newUserData);
+        if (created.success && "user" in created && created.user) {
+            await syncClerkUserMetadata(clerkUser.id, created.user.id, created.user.role ?? "user");
+        }
+        return created;
     } catch (error) {
         console.error("Error creating/getting user from Clerk:", error);
         return { success: false, error: "Failed to create/get user" };
@@ -343,7 +364,15 @@ export async function getSavedQuestions(params: GetSavedQuestionsParams) {
         // Build sort conditions
         let orderBy;
         switch (filter) {
+            case "newest":
             case "most_recent":
+                orderBy = desc(savedQuestions.savedAt);
+                break;
+            case "frequent":
+            case "most_viewed":
+                orderBy = desc(questions.views);
+                break;
+            case "unanswered":
                 orderBy = desc(savedQuestions.savedAt);
                 break;
             case "oldest":
@@ -357,9 +386,6 @@ export async function getSavedQuestions(params: GetSavedQuestionsParams) {
                     WHERE ${votes.questionId} = ${questions.id}
                 )`);
                 break;
-            case "most_viewed":
-                orderBy = desc(questions.views);
-                break;
             case "most_answered":
                 orderBy = desc(sql<number>`(
                     SELECT COUNT(*) FROM ${answers} 
@@ -371,10 +397,19 @@ export async function getSavedQuestions(params: GetSavedQuestionsParams) {
                 break;
         }
 
+        const unansweredFilter =
+            filter === "unanswered"
+                ? sql`NOT EXISTS (
+                    SELECT 1 FROM ${answers}
+                    WHERE ${answers.questionId} = ${questions.id}
+                )`
+                : undefined;
+
         // Combine all conditions
         const allConditions = and(
             eq(savedQuestions.userId, internalUserId),
-            ...(searchConditions.length > 0 ? searchConditions : [])
+            ...(searchConditions.length > 0 ? searchConditions : []),
+            unansweredFilter
         );
 
         const results = await db
@@ -679,6 +714,7 @@ export async function getAllUsers(params: GetAllUsersParams) {
                 location: users.location,
                 leetcodeProfile: users.leetcodeProfile,
                 reputation: users.reputation,
+                role: users.role,
                 joinedAt: users.joinedAt,
                 totalQuestions: sql<number>`(
                     SELECT COUNT(*) FROM ${questions} 

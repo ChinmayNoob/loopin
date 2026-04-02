@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { getUserInfo, getUserByClerkId, updateUser, getSavedQuestions, getUserQuestions, getUserAnswers, toggleSaveQuestion, checkIsQuestionSaved, getAllUsers } from "../actions/users";
+import { getAllUsersForAdmin } from "../actions/admin";
 import { useAuth } from "@clerk/nextjs";
-import { GetSavedQuestionsParams, GetUserStatsParams, ToggleSaveQuestionParams, GetAllUsersParams } from "../actions/shared.types";
+import { GetSavedQuestionsParams, GetUserStatsParams, ToggleSaveQuestionParams, GetAllUsersParams, GetAllUsersForAdminParams } from "../actions/shared.types";
 import { toast } from "sonner";
 
 export function useUserInfo(userId: string) {
@@ -114,6 +115,46 @@ export function useGetAllUsers(params: GetAllUsersParams) {
     return useQuery({
         queryKey: ["users", "all", params.page, params.pageSize, params.filter, params.searchQuery],
         queryFn: () => getAllUsers(params),
+        staleTime: 1000 * 60 * 2,
+        gcTime: 1000 * 60 * 5,
+    });
+}
+
+export function useInfiniteAllUsers(params: Omit<GetAllUsersParams, "page">) {
+    return useInfiniteQuery({
+        queryKey: ["users", "all", "infinite", params.pageSize, params.filter, params.searchQuery],
+        queryFn: ({ pageParam }) =>
+            getAllUsers({ ...params, page: pageParam as number }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.isNext ? allPages.length + 1 : undefined,
+        staleTime: 1000 * 60 * 2,
+        gcTime: 1000 * 60 * 5,
+    });
+}
+
+export function useInfiniteSavedQuestions(params: Omit<GetSavedQuestionsParams, "page">) {
+    return useInfiniteQuery({
+        queryKey: ["user", "saved-questions", "infinite", params.clerkId, params.pageSize, params.filter, params.searchQuery],
+        queryFn: ({ pageParam }) =>
+            getSavedQuestions({ ...params, page: pageParam as number }),
+        enabled: !!params.clerkId,
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.isNext ? allPages.length + 1 : undefined,
+        staleTime: 1000 * 60 * 2,
+        gcTime: 1000 * 60 * 5,
+    });
+}
+
+export function useInfiniteUsersForAdmin(params: GetAllUsersForAdminParams) {
+    return useInfiniteQuery({
+        queryKey: ["admin", "users", "infinite", params.pageSize, params.searchQuery],
+        queryFn: ({ pageParam }) =>
+            getAllUsersForAdmin({ ...params, page: pageParam as number }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.isNext ? allPages.length + 1 : undefined,
         staleTime: 1000 * 60 * 2,
         gcTime: 1000 * 60 * 5,
     });

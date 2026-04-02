@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { useSavedQuestions } from '@/lib/axios/users';
+import { useInfiniteSavedQuestions } from '@/lib/axios/users';
 import QuestionCard from '@/components/cards/question-card';
-import { GetSavedQuestionsParams } from '@/lib/actions/shared.types';
+import InfiniteScrollTrigger from '@/components/common/infinite-scroll-trigger';
 import { redirect } from 'next/navigation';
 import {
     Select,
@@ -23,14 +23,20 @@ const CollectionPage = () => {
         redirect('/sign-in');
     }
 
-    const params: GetSavedQuestionsParams = {
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteSavedQuestions({
         clerkId: user?.id || '',
         filter,
-        page: 1,
         pageSize: 20,
-    };
+    });
 
-    const { data: result, isLoading, error } = useSavedQuestions(params);
+    const questions = data?.pages.flatMap((p) => p.questions) ?? [];
 
     if (!isLoaded || isLoading) {
         return (
@@ -68,7 +74,6 @@ const CollectionPage = () => {
                 <h1 className="font-bold text-2xl">Saved Questions</h1>
             </div>
 
-            {/* Filter Controls */}
             <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex gap-2">
                     <Select value={filter} onValueChange={(value) => setFilter(value as 'newest' | 'frequent' | 'unanswered')}>
@@ -86,14 +91,14 @@ const CollectionPage = () => {
                 </div>
             </div>
 
-            {/* Questions List */}
             <div className="mt-8 flex w-full flex-col">
-                {result && result.questions.length > 0 ? (
+                {questions.length > 0 ? (
                     <>
                         <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                            {result.questions.length} saved question{result.questions.length !== 1 ? 's' : ''}
+                            Showing {questions.length} saved question{questions.length !== 1 ? 's' : ''}
+                            {hasNextPage ? " (scroll for more)" : ""}
                         </div>
-                        {result.questions.map((question) => (
+                        {questions.map((question) => (
                             <QuestionCard
                                 key={question.id || 0}
                                 _id={(question.id || 0).toString()}
@@ -118,6 +123,11 @@ const CollectionPage = () => {
                                 clerkId={user?.id}
                             />
                         ))}
+                        <InfiniteScrollTrigger
+                            hasNextPage={!!hasNextPage}
+                            isFetchingNextPage={isFetchingNextPage}
+                            fetchNextPage={fetchNextPage}
+                        />
                     </>
                 ) : (
                     <div className="mt-10 text-center">

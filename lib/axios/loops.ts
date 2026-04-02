@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import {
     createLoop,
     editLoop,
@@ -13,6 +13,9 @@ import {
     getPopularLoops,
     askQuestionInLoop,
     isUserMemberOfLoop,
+    assignLoopRole,
+    getLoopMemberRole,
+    kickLoopMember,
 } from "@/lib/actions/loops";
 import {
     CreateLoopParams,
@@ -26,6 +29,9 @@ import {
     GetUserLoopsParams,
     GetLoopMembersParams,
     AskQuestionInLoopParams,
+    AssignLoopRoleParams,
+    GetLoopMemberRoleParams,
+    KickLoopMemberParams,
 } from "@/lib/actions/shared.types";
 
 // Create Loop
@@ -157,6 +163,20 @@ export const useGetLoopQuestions = (params: GetLoopQuestionsParams) => {
     });
 };
 
+export const useInfiniteLoopQuestions = (params: Omit<GetLoopQuestionsParams, "page">) => {
+    return useInfiniteQuery({
+        queryKey: ["loop-questions", "infinite", params.loopId, params.searchQuery, params.filter, params.pageSize],
+        queryFn: ({ pageParam }) =>
+            getLoopQuestions({ ...params, page: pageParam as number }),
+        enabled: !!params.loopId,
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.isNext ? allPages.length + 1 : undefined,
+        staleTime: 1000 * 60 * 2,
+        gcTime: 1000 * 60 * 5,
+    });
+};
+
 // Get User Loops
 export const useGetUserLoops = (params: GetUserLoopsParams) => {
     return useQuery({
@@ -171,11 +191,51 @@ export const useGetUserLoops = (params: GetUserLoopsParams) => {
 // Get Loop Members
 export const useGetLoopMembers = (params: GetLoopMembersParams) => {
     return useQuery({
-        queryKey: ["loop-members", params.loopId, params.page, params.pageSize],
+        queryKey: ["loop-members", params.loopId, params.page, params.pageSize, params.filter],
         queryFn: () => getLoopMembers(params),
         enabled: !!params.loopId,
         staleTime: 1000 * 60 * 5, // 5 minutes
         gcTime: 1000 * 60 * 10, // 10 minutes
+    });
+};
+
+export const useGetLoopMemberRole = (params: GetLoopMemberRoleParams | null) => {
+    return useQuery({
+        queryKey: ["loop-member-role", params?.loopId, params?.userId],
+        queryFn: () => getLoopMemberRole(params!),
+        enabled: !!params?.loopId && !!params?.userId,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
+    });
+};
+
+export const useAssignLoopRole = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (p: AssignLoopRoleParams) => assignLoopRole(p),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["loop-members", variables.loopId] });
+            queryClient.invalidateQueries({
+                queryKey: ["loop-member-role", variables.loopId, variables.targetUserId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["loop", variables.loopId] });
+        },
+    });
+};
+
+export const useKickLoopMember = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (p: KickLoopMemberParams) => kickLoopMember(p),
+        onSuccess: (data, variables) => {
+            if (!data.success) return;
+            queryClient.invalidateQueries({ queryKey: ["loop-members", variables.loopId] });
+            queryClient.invalidateQueries({
+                queryKey: ["loop-member-role", variables.loopId, variables.targetUserId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["loop", variables.loopId] });
+            queryClient.invalidateQueries({ queryKey: ["user-loops", variables.targetUserId] });
+        },
     });
 };
 
@@ -198,7 +258,10 @@ export const useAskQuestionInLoop = () => {
         onSuccess: (data, variables) => {
             if (data.success) {
                 // Invalidate loop questions and related queries
-                queryClient.invalidateQueries({ queryKey: ["loop-questions", variables.loopId] });
+                queryClient.invalidateQueries({
+                    predicate: (q) =>
+                        q.queryKey[0] === "loop-questions" && q.queryKey[1] === variables.loopId,
+                });
                 queryClient.invalidateQueries({ queryKey: ["questions"] });
             }
         },

@@ -10,6 +10,7 @@ import {
     AnswerVoteParams,
     DeleteAnswerParams,
 } from "./shared.types";
+import { canModifyAnswer } from "./permissions";
 
 export async function createAnswer(params: CreateAnswerParams) {
     try {
@@ -262,7 +263,7 @@ export async function downvoteAnswer(params: AnswerVoteParams) {
 
 export async function deleteAnswer(params: DeleteAnswerParams) {
     try {
-        const { answerId, path } = params;
+        const { answerId, userId, path } = params;
 
         // Check if answer exists
         const existingAnswer = await db.query.answers.findFirst({
@@ -271,6 +272,20 @@ export async function deleteAnswer(params: DeleteAnswerParams) {
 
         if (!existingAnswer) {
             return { success: false, error: "Answer not found" };
+        }
+
+        const questionRow = await db.query.questions.findFirst({
+            where: eq(questions.id, existingAnswer.questionId),
+            columns: { loopId: true },
+        });
+
+        const allowed = await canModifyAnswer(
+            userId,
+            { authorId: existingAnswer.authorId },
+            { loopId: questionRow?.loopId ?? null }
+        );
+        if (!allowed) {
+            return { success: false, error: "Unauthorized: Only the author or moderators can delete this answer" };
         }
 
         // Delete related data first (foreign key constraints)

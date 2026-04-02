@@ -56,6 +56,8 @@ export interface CreateQuestionParams {
 
 export interface GetQuestionByIdParams {
     questionId: number;
+    /** When set, response includes `canModify` and `canModerateAnswers` for this viewer. */
+    viewerUserId?: number;
 }
 
 export interface QuestionVoteParams {
@@ -116,7 +118,44 @@ export interface AnswerVoteParams {
 
 export interface DeleteAnswerParams {
     answerId: number;
+    userId: number;
     path: string;
+}
+
+/** Platform-level role stored on `users.role` */
+export type GlobalRoleLiteral = "user" | "moderator" | "admin";
+
+export interface AssignLoopRoleParams {
+    loopId: number;
+    actorUserId: number;
+    targetUserId: number;
+    role: "member" | "moderator" | "admin";
+    path: string;
+}
+
+export interface KickLoopMemberParams {
+    loopId: number;
+    actorUserId: number;
+    targetUserId: number;
+    path: string;
+}
+
+export interface AssignGlobalRoleParams {
+    adminUserId: number;
+    targetUserId: number;
+    role: GlobalRoleLiteral;
+    path: string;
+}
+
+export interface GetLoopMemberRoleParams {
+    loopId: number;
+    userId: number;
+}
+
+export interface GetAllUsersForAdminParams {
+    page?: number;
+    pageSize?: number;
+    searchQuery?: string;
 }
 
 // User Types
@@ -299,7 +338,7 @@ export interface GetLoopMembersParams {
     loopId: number;
     page?: number;
     pageSize?: number;
-    filter?: "all" | "admin" | "recent";
+    filter?: "all" | "admin" | "moderator" | "recent";
 }
 
 export interface LoopMemberWithUser {

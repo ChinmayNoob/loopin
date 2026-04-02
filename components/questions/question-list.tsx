@@ -2,10 +2,11 @@
 
 import React, { useMemo, useState } from 'react';
 import QuestionCard from "@/components/cards/question-card";
-import { useQuestions } from "@/lib/axios/questions";
+import { useInfiniteQuestions } from "@/lib/axios/questions";
 import { useBatchVoteStatus } from "@/lib/axios/interactions";
 import { GetQuestionsParams } from "@/lib/actions/shared.types";
 import { useCurrentUser } from "@/lib/axios/users";
+import InfiniteScrollTrigger from "@/components/common/infinite-scroll-trigger";
 import {
     Select,
     SelectContent,
@@ -16,28 +17,35 @@ import {
 } from "@/components/ui/select";
 
 interface QuestionsListProps {
-    params: GetQuestionsParams;
+    params: Omit<GetQuestionsParams, "page">;
     clerkId: string | null;
     showFilter?: boolean;
 }
 
 export default function QuestionsList({ params, clerkId, showFilter = false }: QuestionsListProps) {
     const [filter, setFilter] = useState<'newest' | 'frequent' | 'unanswered'>('newest');
-    const { data: result, isLoading, error } = useQuestions({
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuestions({
         ...params,
-        filter: showFilter ? filter : params.filter
+        filter: showFilter ? filter : params.filter,
     });
 
-    // Get current user from the custom hook
+    const questions = useMemo(
+        () => data?.pages.flatMap((p) => p.questions) ?? [],
+        [data]
+    );
+
     const { data: currentUserData } = useCurrentUser();
     const userId = currentUserData?.user?.id;
 
-    // Extract question IDs for batch vote checking
-    const questionIds = useMemo(() => {
-        return result?.questions?.map(q => q.id) || [];
-    }, [result]);
+    const questionIds = useMemo(() => questions.map((q) => q.id), [questions]);
 
-    // Batch check votes for all questions
     const { data: voteStatusMap } = useBatchVoteStatus(
         userId && questionIds.length > 0 ? { questionIds, userId } : null
     );
@@ -62,7 +70,6 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
 
     return (
         <div className="mt-8 flex w-full flex-col">
-            {/* Filter Controls - only show if showFilter is true */}
             {showFilter && (
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex gap-2">
@@ -82,9 +89,8 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
                 </div>
             )}
 
-            {result && result.questions.length > 0 ? (
-                result.questions.map((question) => {
-                    // Get vote status for this specific question
+            {questions.length > 0 ? (
+                questions.map((question) => {
                     const voteStatus = voteStatusMap?.get(`question-${question.id}`);
 
                     return (
@@ -96,7 +102,6 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
                                 _id: tag.id.toString(),
                                 name: tag.name
                             }))}
-                            // Fixed: Use question.loop instead of question.loops
                             loop={{
                                 id: question.loop?.id || question.loopId || 0,
                                 name: question.loop?.name || "No Community",
@@ -130,6 +135,14 @@ export default function QuestionsList({ params, clerkId, showFilter = false }: Q
                         Be the first to ask a question!
                     </p>
                 </div>
+            )}
+
+            {(questions.length > 0 || hasNextPage) && (
+                <InfiniteScrollTrigger
+                    hasNextPage={!!hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    fetchNextPage={fetchNextPage}
+                />
             )}
         </div>
     );

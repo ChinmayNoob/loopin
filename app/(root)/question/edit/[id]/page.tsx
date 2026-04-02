@@ -2,6 +2,7 @@
 
 import EditQuestion from "@/components/forms/edit-question";
 import { useQuestionById } from "@/lib/axios/questions";
+import { useCurrentUser } from "@/lib/axios/users";
 import { use } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -13,7 +14,11 @@ interface PageParams {
 
 const EditQuestionPage = ({ params }: { params: Promise<PageParams> }) => {
     const unwrappedParams = use(params);
-    const { data: questionInfo, isLoading, error } = useQuestionById({ questionId: parseInt(unwrappedParams.id) });
+    const { data: currentUser } = useCurrentUser();
+    const { data: questionInfo, isLoading, error } = useQuestionById({
+        questionId: parseInt(unwrappedParams.id),
+        viewerUserId: currentUser?.success ? currentUser.user?.id : undefined,
+    });
 
     if (isLoading) {
         return (
@@ -35,6 +40,23 @@ const EditQuestionPage = ({ params }: { params: Promise<PageParams> }) => {
                         <Button className="primary-gradient text-light900_dark100">
                             Back to Questions
                         </Button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    const viewerReady = currentUser?.success === true && currentUser.user != null;
+    if (viewerReady && !questionInfo.canModify) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px] flex-col gap-4 px-6">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-[#000000] dark:text-[#FFFFFF] mb-2">You can&apos;t edit this question</h2>
+                    <p className="text-[#5C5C7B] dark:text-[#858EAD] mb-4">
+                        Only the author or a moderator can edit it.
+                    </p>
+                    <Link href={`/question/${unwrappedParams.id}`}>
+                        <Button className="primary-gradient text-light900_dark100">Back to question</Button>
                     </Link>
                 </div>
             </div>

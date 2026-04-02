@@ -24,7 +24,6 @@ export default function Home() {
             </div>
             <QuestionsList
                 params={{
-                    page: 1,
                     pageSize: 10,
                 }}
                 clerkId={user?.id || null}

@@ -16,6 +16,9 @@ import {
     AskQuestionInLoopParams,
     LoopWithStats,
     GetLoopMembersParams,
+    AssignLoopRoleParams,
+    GetLoopMemberRoleParams,
+    KickLoopMemberParams,
 } from "./shared.types";
 
 export async function createLoop(params: CreateLoopParams) {
@@ -623,6 +626,10 @@ export async function getLoopMembers(params: GetLoopMembersParams) {
                 whereConditions.push(eq(loopMembers.role, "admin"));
                 orderBy = desc(loopMembers.joinedAt);
                 break;
+            case "moderator":
+                whereConditions.push(eq(loopMembers.role, "moderator"));
+                orderBy = desc(loopMembers.joinedAt);
+                break;
             case "recent":
                 orderBy = desc(loopMembers.joinedAt);
                 break;
@@ -661,6 +668,123 @@ export async function getLoopMembers(params: GetLoopMembersParams) {
     } catch (error) {
         console.error("Error getting loop members:", error);
         throw error;
+    }
+}
+
+export async function getLoopMemberRole(params: GetLoopMemberRoleParams) {
+    try {
+        const { loopId, userId } = params;
+        const row = await db.query.loopMembers.findFirst({
+            where: and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, userId)),
+            columns: { role: true },
+        });
+        return { success: true, role: row?.role ?? null };
+    } catch (error) {
+        console.error("Error getting loop member role:", error);
+        return { success: false, role: null, error: "Failed to get role" };
+    }
+}
+
+export async function assignLoopRole(params: AssignLoopRoleParams) {
+    try {
+        const { loopId, actorUserId, targetUserId, role, path } = params;
+
+        const actor = await db.query.loopMembers.findFirst({
+            where: and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, actorUserId)),
+        });
+        if (!actor || actor.role !== "admin") {
+            return { success: false, error: "Unauthorized: Only loop admins can change member roles" };
+        }
+
+        const target = await db.query.loopMembers.findFirst({
+            where: and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, targetUserId)),
+        });
+        if (!target) {
+            return { success: false, error: "User is not a member of this loop" };
+        }
+
+        if (target.role === "admin" && role !== "admin") {
+            const [{ adminCount }] = await db
+                .select({ adminCount: sql<number>`count(*)::int` })
+                .from(loopMembers)
+                .where(and(eq(loopMembers.loopId, loopId), eq(loopMembers.role, "admin")));
+            if (adminCount <= 1) {
+                return { success: false, error: "Cannot demote the last admin" };
+            }
+        }
+
+        await db
+            .update(loopMembers)
+            .set({ role })
+            .where(and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, targetUserId)));
+
+        revalidatePath(path);
+        revalidatePath(`/loops/${loopId}/members`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error assigning loop role:", error);
+        return { success: false, error: "Failed to update role" };
+    }
+}
+
+export async function kickLoopMember(params: KickLoopMemberParams) {
+    try {
+        const { loopId, actorUserId, targetUserId, path } = params;
+
+        if (actorUserId === targetUserId) {
+            return { success: false, error: "You cannot remove yourself from the loop here" };
+        }
+
+        const actor = await db.query.loopMembers.findFirst({
+            where: and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, actorUserId)),
+        });
+        const actorRole = actor?.role ?? "member";
+        if (actorRole !== "admin" && actorRole !== "moderator") {
+            return {
+                success: false,
+                error: "Unauthorized: Only loop moderators and admins can remove members",
+            };
+        }
+
+        const target = await db.query.loopMembers.findFirst({
+            where: and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, targetUserId)),
+        });
+        if (!target) {
+            return { success: false, error: "User is not a member of this loop" };
+        }
+
+        const targetRole = target.role ?? "member";
+
+        if (actorRole === "moderator") {
+            if (targetRole !== "member") {
+                return {
+                    success: false,
+                    error: "Moderators can only remove regular members",
+                };
+            }
+        }
+
+        if (targetRole === "admin") {
+            const [{ adminCount }] = await db
+                .select({ adminCount: sql<number>`count(*)::int` })
+                .from(loopMembers)
+                .where(and(eq(loopMembers.loopId, loopId), eq(loopMembers.role, "admin")));
+            if (adminCount <= 1) {
+                return { success: false, error: "Cannot remove the last admin" };
+            }
+        }
+
+        await db
+            .delete(loopMembers)
+            .where(and(eq(loopMembers.loopId, loopId), eq(loopMembers.userId, targetUserId)));
+
+        revalidatePath(path);
+        revalidatePath(`/loops/${loopId}/members`);
+        revalidatePath(`/loops/${loopId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error kicking loop member:", error);
+        return { success: false, error: "Failed to remove member" };
     }
 }
 

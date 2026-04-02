@@ -14,6 +14,7 @@ import {
     RecommendedParams,
     QuestionWithAuthor,
 } from "./shared.types";
+import { canModerateAnswersOnQuestion, canModifyQuestion } from "./permissions";
 
 export async function getQuestions(params: GetQuestionsParams): Promise<{ questions: QuestionWithAuthor[], isNext: boolean }> {
     try {
@@ -213,7 +214,7 @@ export async function createQuestion(params: CreateQuestionParams) {
 
 export async function getQuestionById(params: GetQuestionByIdParams) {
     try {
-        const { questionId } = params;
+        const { questionId, viewerUserId } = params;
 
         const [question] = await db
             .select({
@@ -287,7 +288,19 @@ export async function getQuestionById(params: GetQuestionByIdParams) {
             throw new Error("Question not found");
         }
 
-        return question;
+        let canModify = false;
+        let canModerateAnswers = false;
+        if (viewerUserId != null) {
+            canModify = await canModifyQuestion(viewerUserId, {
+                authorId: question.authorId,
+                loopId: question.loopId,
+            });
+            canModerateAnswers = await canModerateAnswersOnQuestion(viewerUserId, {
+                loopId: question.loopId,
+            });
+        }
+
+        return { ...question, canModify, canModerateAnswers };
     } catch (error) {
         console.error("Error getting question:", error);
         throw error;
@@ -417,9 +430,12 @@ export async function deleteQuestion(params: DeleteQuestionParams) {
             return { success: false, error: "Question not found" };
         }
 
-        // Check if the current user is the author
-        if (existingQuestion.authorId !== userId) {
-            return { success: false, error: "Unauthorized: Only the author can delete this question" };
+        const allowed = await canModifyQuestion(userId, {
+            authorId: existingQuestion.authorId,
+            loopId: existingQuestion.loopId,
+        });
+        if (!allowed) {
+            return { success: false, error: "Unauthorized: Only the author or moderators can delete this question" };
         }
 
         // Delete related data first (foreign key constraints)
@@ -451,9 +467,12 @@ export async function editQuestion(params: EditQuestionParams) {
             return { success: false, error: "Question not found" };
         }
 
-        // Check if the current user is the author
-        if (existingQuestion.authorId !== userId) {
-            return { success: false, error: "Unauthorized: Only the author can edit this question" };
+        const allowed = await canModifyQuestion(userId, {
+            authorId: existingQuestion.authorId,
+            loopId: existingQuestion.loopId,
+        });
+        if (!allowed) {
+            return { success: false, error: "Unauthorized: Only the author or moderators can edit this question" };
         }
 
         // Update the question

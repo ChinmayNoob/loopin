@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import {
     getAllTags,
     getQuestionsByTagId,
@@ -27,6 +27,20 @@ export function useQuestionsByTagId(params: GetQuestionsByTagIdParams) {
         enabled: !!params.tagId,
         staleTime: 1000 * 60 * 5, // 5 minutes
         gcTime: 1000 * 60 * 10, // 10 minutes
+    });
+}
+
+export function useInfiniteQuestionsByTagId(params: Omit<GetQuestionsByTagIdParams, "page">) {
+    return useInfiniteQuery({
+        queryKey: ["questionsByTag", "infinite", params.tagId, params.searchQuery, params.pageSize],
+        queryFn: ({ pageParam }) =>
+            getQuestionsByTagId({ ...params, page: pageParam as number }),
+        enabled: !!params.tagId,
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.isNext ? allPages.length + 1 : undefined,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 }
 

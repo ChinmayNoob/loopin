@@ -24,8 +24,11 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
     const router = useRouter();
     const unwrappedParams = use(params);
     console.log(unwrappedParams);
-    const { data: questionInfo, isLoading, error } = useQuestionById({ questionId: parseInt(unwrappedParams.id) });
     const { data: currentUser } = useCurrentUser();
+    const { data: questionInfo, isLoading, error } = useQuestionById({
+        questionId: parseInt(unwrappedParams.id),
+        viewerUserId: currentUser?.success ? currentUser.user?.id : undefined,
+    });
 
     if (isLoading) {
         return (
@@ -65,9 +68,11 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
         answerCount
     } = questionInfo;
 
-    // Check if current user is the author of the question
-    const isAuthor = currentUser?.success && currentUser.user &&
+    const isAuthor =
+        currentUser?.success &&
+        currentUser.user &&
         questionInfo.authorId === currentUser.user.id;
+    const showQuestionModeration = isAuthor || questionInfo.canModify;
 
     return (
         <div className="w-full px-6 sm:px-12 py-8">
@@ -177,8 +182,7 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
                         </Button>
                     </Link>
 
-                    {/* Only show Edit and Delete buttons to the author */}
-                    {isAuthor && (
+                    {showQuestionModeration && (
                         <>
                             <Link href={`/question/edit/${id}`}>
                                 <Button variant="outline" className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
@@ -198,7 +202,11 @@ const QuestionDetails = ({ params }: { params: Promise<PageParams> }) => {
             </div>
 
             {/* Answers Section */}
-            <AnswerList questionId={id} totalAnswers={answerCount || 0} />
+            <AnswerList
+                questionId={id}
+                totalAnswers={answerCount || 0}
+                canModerateAnswers={questionInfo.canModerateAnswers}
+            />
 
             {/* Create Answer Form */}
             <CreateAnswer questionId={id} />

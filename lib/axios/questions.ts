@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
     getQuestions,
@@ -20,6 +20,105 @@ import {
     QuestionVoteParams,
     RecommendedParams
 } from "../actions/shared.types";
+
+type QuestionVoteRow = {
+    id: number;
+    totalVotes: number;
+    upvoteCount: number;
+    downvoteCount: number;
+};
+
+function patchQuestionListUpvote(
+    oldData: unknown,
+    questionId: number,
+    hasupVoted: boolean,
+    hasdownVoted: boolean
+): unknown {
+    if (!oldData || typeof oldData !== "object") return oldData;
+
+    const mapRow = (q: QuestionVoteRow): QuestionVoteRow => {
+        if (q.id !== questionId) return q;
+        let totalVotesChange = 0;
+        if (hasupVoted) totalVotesChange = -1;
+        else if (hasdownVoted) totalVotesChange = 2;
+        else totalVotesChange = 1;
+        return {
+            ...q,
+            totalVotes: q.totalVotes + totalVotesChange,
+            upvoteCount: hasupVoted ? q.upvoteCount - 1 : q.upvoteCount + 1,
+            downvoteCount: hasdownVoted ? q.downvoteCount - 1 : q.downvoteCount,
+        };
+    };
+
+    if ("pages" in oldData && Array.isArray((oldData as { pages: unknown[] }).pages)) {
+        const d = oldData as { pages: Array<{ questions?: QuestionVoteRow[] }>; pageParams: unknown[] };
+        return {
+            ...d,
+            pages: d.pages.map((page) =>
+                page.questions
+                    ? { ...page, questions: page.questions.map(mapRow) }
+                    : page
+            ),
+        };
+    }
+
+    if ("questions" in oldData && Array.isArray((oldData as { questions: QuestionVoteRow[] }).questions)) {
+        const d = oldData as { questions: QuestionVoteRow[] };
+        return { ...d, questions: d.questions.map(mapRow) };
+    }
+
+    return oldData;
+}
+
+function patchQuestionListDownvote(
+    oldData: unknown,
+    questionId: number,
+    hasupVoted: boolean,
+    hasdownVoted: boolean
+): unknown {
+    if (!oldData || typeof oldData !== "object") return oldData;
+
+    const mapRow = (q: QuestionVoteRow): QuestionVoteRow => {
+        if (q.id !== questionId) return q;
+        let totalVotesChange = 0;
+        if (hasdownVoted) totalVotesChange = 1;
+        else if (hasupVoted) totalVotesChange = -2;
+        else totalVotesChange = -1;
+        return {
+            ...q,
+            totalVotes: q.totalVotes + totalVotesChange,
+            upvoteCount: hasupVoted ? q.upvoteCount - 1 : q.upvoteCount,
+            downvoteCount: hasdownVoted ? q.downvoteCount - 1 : q.downvoteCount + 1,
+        };
+    };
+
+    if ("pages" in oldData && Array.isArray((oldData as { pages: unknown[] }).pages)) {
+        const d = oldData as { pages: Array<{ questions?: QuestionVoteRow[] }>; pageParams: unknown[] };
+        return {
+            ...d,
+            pages: d.pages.map((page) =>
+                page.questions
+                    ? { ...page, questions: page.questions.map(mapRow) }
+                    : page
+            ),
+        };
+    }
+
+    if ("questions" in oldData && Array.isArray((oldData as { questions: QuestionVoteRow[] }).questions)) {
+        const d = oldData as { questions: QuestionVoteRow[] };
+        return { ...d, questions: d.questions.map(mapRow) };
+    }
+
+    return oldData;
+}
+
+function isListableQuestionsQuery(queryKey: readonly unknown[]) {
+    return (
+        queryKey[0] === "questions" &&
+        queryKey[1] !== "top" &&
+        queryKey[1] !== "recommended"
+    );
+}
 
 // Vote status query
 export function useQuestionVoteStatus(questionId: number, userId: number) {
@@ -76,40 +175,10 @@ export function useUpvoteQuestion() {
 
             queryClient.setQueryData(["question-vote", questionId, userId], newVote);
 
-            // Update question vote counts in question lists
             queryClient.setQueriesData(
-                { queryKey: ["questions"] },
-                (oldData: { questions?: Array<{ id: number; totalVotes: number; upvoteCount: number; downvoteCount: number }> } | undefined) => {
-                    if (!oldData?.questions) return oldData;
-
-                    return {
-                        ...oldData,
-                        questions: oldData.questions.map((q) => {
-                            if (q.id === questionId) {
-                                let totalVotesChange = 0;
-                                if (hasupVoted) {
-                                    totalVotesChange = -1; // Remove upvote
-                                } else if (hasdownVoted) {
-                                    totalVotesChange = 2; // Change downvote to upvote
-                                } else {
-                                    totalVotesChange = 1; // Add upvote
-                                }
-
-                                return {
-                                    ...q,
-                                    totalVotes: q.totalVotes + totalVotesChange,
-                                    upvoteCount: hasupVoted
-                                        ? q.upvoteCount - 1
-                                        : q.upvoteCount + 1,
-                                    downvoteCount: hasdownVoted
-                                        ? q.downvoteCount - 1
-                                        : q.downvoteCount
-                                };
-                            }
-                            return q;
-                        })
-                    };
-                }
+                { predicate: (q) => isListableQuestionsQuery(q.queryKey) },
+                (oldData: unknown) =>
+                    patchQuestionListUpvote(oldData, questionId, hasupVoted, hasdownVoted)
             );
 
             return { previousVote };
@@ -174,40 +243,10 @@ export function useDownvoteQuestion() {
 
             queryClient.setQueryData(["question-vote", questionId, userId], newVote);
 
-            // Update question vote counts in question lists
             queryClient.setQueriesData(
-                { queryKey: ["questions"] },
-                (oldData: { questions?: Array<{ id: number; totalVotes: number; upvoteCount: number; downvoteCount: number }> } | undefined) => {
-                    if (!oldData?.questions) return oldData;
-
-                    return {
-                        ...oldData,
-                        questions: oldData.questions.map((q) => {
-                            if (q.id === questionId) {
-                                let totalVotesChange = 0;
-                                if (hasdownVoted) {
-                                    totalVotesChange = 1; // Remove downvote
-                                } else if (hasupVoted) {
-                                    totalVotesChange = -2; // Change upvote to downvote
-                                } else {
-                                    totalVotesChange = -1; // Add downvote
-                                }
-
-                                return {
-                                    ...q,
-                                    totalVotes: q.totalVotes + totalVotesChange,
-                                    upvoteCount: hasupVoted
-                                        ? q.upvoteCount - 1
-                                        : q.upvoteCount,
-                                    downvoteCount: hasdownVoted
-                                        ? q.downvoteCount - 1
-                                        : q.downvoteCount + 1
-                                };
-                            }
-                            return q;
-                        })
-                    };
-                }
+                { predicate: (q) => isListableQuestionsQuery(q.queryKey) },
+                (oldData: unknown) =>
+                    patchQuestionListDownvote(oldData, questionId, hasupVoted, hasdownVoted)
             );
 
             return { previousVote };
@@ -253,9 +292,22 @@ export function useQuestions(params: GetQuestionsParams) {
     });
 }
 
+export function useInfiniteQuestions(params: Omit<GetQuestionsParams, "page">) {
+    return useInfiniteQuery({
+        queryKey: ["questions", "infinite", params.searchQuery, params.filter, params.pageSize],
+        queryFn: ({ pageParam }) =>
+            getQuestions({ ...params, page: pageParam as number }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) =>
+            lastPage.isNext ? allPages.length + 1 : undefined,
+        staleTime: 1000 * 60 * 2,
+        gcTime: 1000 * 60 * 5,
+    });
+}
+
 export function useQuestionById(params: GetQuestionByIdParams) {
     return useQuery({
-        queryKey: ["question", params.questionId],
+        queryKey: ["question", params.questionId, params.viewerUserId ?? null],
         queryFn: () => getQuestionById(params),
         enabled: !!params.questionId,
         staleTime: 1000 * 60 * 5, // 5 minutes
